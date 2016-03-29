@@ -44,11 +44,11 @@ public class Controller implements Initializable {
     @FXML
     HBox top;
 
-    private ComboBox<String> cmbTerm = new ComboBox<>();
+    private ComboBox<Term> cmbTerm = new ComboBox<>();
     private ListView<String> listCampus = new ListView<>();
     private VBox vTerm = new VBox(5);
 
-    private final ObservableList<String> terms = FXCollections.observableArrayList();
+    private final ObservableList<Term> terms = FXCollections.observableArrayList();
     private ObservableList<String> campuses = FXCollections.observableArrayList();
     private ObservableList<HBox> hBoxList = FXCollections.observableArrayList();
 
@@ -133,7 +133,7 @@ public class Controller implements Initializable {
     }
     private void setSubjectOnAdd(int j){
         if(cmbTerm.getValue() != null){
-            hBoxes.get(j).setCmbSubject(idb.getSubjects(cmbTerm.getValue()));
+            //hBoxes.get(j).setCmbSubject(idb.getSubjects(cmbTerm.getValue()));
         }
     }
     private void updateHBoxPosition(){
@@ -146,10 +146,14 @@ public class Controller implements Initializable {
         }
     }
     private void getTerms(){
-        terms.addAll(idb.getOpenTerms());
+        //terms.addAll(idb.getOpenTerms());
+        Term testTerm = new Term();
+        testTerm.setTerm(20160106, "Spring 2016");
+        testTerm.toString();
+        terms.add(testTerm);
         cmbTerm.setItems(terms);
         cmbTerm.setPromptText("Select Term");
-        cmbTerm.valueProperty().addListener(new ChangeListener<String>() {
+       /* cmbTerm.valueProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 //Need to write more code to reset everything if new term is selected
@@ -161,7 +165,7 @@ public class Controller implements Initializable {
                     setSubjectOnAction(j);
                 }
             }
-        });
+        });*/
     }
     public void handleGenerateSchedule(ActionEvent e) {
         tabPane.getSelectionModel().select(resultsTab);
