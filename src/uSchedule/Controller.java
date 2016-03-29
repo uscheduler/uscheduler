@@ -58,12 +58,11 @@ public class Controller implements Initializable {
 
     private InternalDataManager idb = new InternalDataManager();
 
-
     @Override
     public void initialize(URL location, ResourceBundle resources){
         vTerm.getChildren().addAll(new Label("Desired Campuses"),listCampus);
         top.getChildren().add(0, vTerm);
-        top.getChildren().add(0,cmbTerm);
+        top.getChildren().add(0, cmbTerm);
         listCampus.setMaxHeight(75);
         listCampus.setMaxWidth(175);
         tooltip.setText("Press control and left mouse click\n to select multiple entries.");
@@ -185,7 +184,7 @@ public class Controller implements Initializable {
         }
         displayText.setText(output);
     }
-    public void showWarning(Text message) {
+    private void showWarning(Text message) {
         message.setFont(Font.font("Veranda", 20));
         message.setFill(Color.RED);
         final Stage warning = new Stage();
