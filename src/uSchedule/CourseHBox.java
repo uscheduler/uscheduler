@@ -1,13 +1,21 @@
 package uSchedule;
 
+import com.sun.javafx.property.adapter.PropertyDescriptor;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -38,7 +46,6 @@ public class CourseHBox extends HBox{
     private ObservableList<String> instructors = FXCollections.observableArrayList();
     private final Tooltip tooltip = new Tooltip();
 
-
     public CourseHBox(){
         vSubjCourse.getChildren().addAll(cmbSubject,txtCourseID,cmbCourseAvail);
         vSession.getChildren().addAll(new Label("Desired Session"),listSession);
@@ -51,6 +58,15 @@ public class CourseHBox extends HBox{
         fillStaticFields();
         this.getChildren().addAll(vSubjCourse,vSection,vSession,vFormat,vInstructor,vButtons);
         this.setSpacing(5);
+        txtCourseID.focusedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if(newValue)
+                    System.out.println("TextField is in focus");
+                else
+                    System.out.println("TextField is out of focus");
+            }
+        });
     }
     private void formatItems(){
         cmbSubject.setPromptText("Select Subject");
