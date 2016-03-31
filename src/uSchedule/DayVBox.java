@@ -32,9 +32,7 @@ public class DayVBox extends VBox{
         cmbTimeAfter.setItems(comboTimeItems);
         cmbTimeBefore.setValue(comboTimeItems.get(0));
         cmbTimeAfter.setValue(comboTimeItems.get(0));
-        checkDay.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
+        checkDay.setOnAction(e -> {
                 if(checkDay.isSelected() != true){
                     cmbTimeAfter.setDisable(true);
                     cmbTimeBefore.setDisable(true);
@@ -42,7 +40,6 @@ public class DayVBox extends VBox{
                     cmbTimeAfter.setDisable(false);
                     cmbTimeBefore.setDisable(false);
                 }
-            }
         });
         if((dayOfWeek.compareTo("Saturday") == 0) || dayOfWeek.compareTo("Sunday") == 0){
             checkDay.setSelected(false);

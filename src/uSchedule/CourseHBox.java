@@ -58,14 +58,12 @@ public class CourseHBox extends HBox{
         fillStaticFields();
         this.getChildren().addAll(vSubjCourse,vSection,vSession,vFormat,vInstructor,vButtons);
         this.setSpacing(5);
-        txtCourseID.focusedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if(newValue)
+        txtCourseID.focusedProperty().addListener( (ob, oldValue, newValue) -> {
+            if(newValue)
                     System.out.println("TextField is in focus");
                 else
                     System.out.println("TextField is out of focus");
-            }
+
         });
     }
     private void formatItems(){
@@ -107,9 +105,7 @@ public class CourseHBox extends HBox{
                 "Classes with open seats",
                 "Show ALL classes");
         cmbCourseAvail.setItems(comboAvailability);
-        buttonDisable.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
+        buttonDisable.setOnAction(e -> {
                 if(isDisabled == false) {
                     vSubjCourse.setDisable(true);
                     vSection.setDisable(true);
@@ -127,7 +123,7 @@ public class CourseHBox extends HBox{
                     buttonDisable.setText("Disable");
                     isDisabled = false;
                 }
-            }
+
         });
     }
     public void setCmbSubject(ArrayList<String> subjects){
