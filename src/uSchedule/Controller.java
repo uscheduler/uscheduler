@@ -87,7 +87,7 @@ public class Controller implements Initializable {
     }
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
-            showWarning(new Text("You have reached the maximum number of classes that can be taken in a semester."));
+            showWarning("Warning","You have reached the maximum number of classes that can be taken in a semester.");
         }else{
             CourseHBox course = new CourseHBox();
             hBoxList.add(0, course);
@@ -101,34 +101,25 @@ public class Controller implements Initializable {
         }
     }
     private void setDeleteAction(int j){
-        hBoxes.get(j).buttonRemove.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
+        hBoxes.get(j).buttonRemove.setOnAction(e -> {
                 hBoxList.remove(hBoxes.get(j).getOnRow());
                 hBoxes.remove(hBoxes.get(j).getOnRow());
                 updateHBoxPosition();
-            }
         });
     }
     private void setSubjectOnAction(int j){
-        hBoxes.get(j).cmbSubject.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
+        hBoxes.get(j).cmbSubject.setOnAction(e -> {
                 hBoxes.get(j).setCmbCourseID(idb.getCourseNum(hBoxes.get(j).cmbSubject.getValue()));
-            }
         });
     }
     private void setCourseNumAction(int j){
-        hBoxes.get(j).txtCourseID.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                hBoxes.get(j).setLists(
-                        idb.getSections(hBoxes.get(j).cmbSubject.getValue(),hBoxes.get(j).txtCourseID.getText()),
-                        idb.getSessions(hBoxes.get(j).cmbSubject.getValue(),hBoxes.get(j).txtCourseID.getText()),
-                        idb.getFormat(hBoxes.get(j).cmbSubject.getValue(),hBoxes.get(j).txtCourseID.getText()),
-                        idb.getInstructors(hBoxes.get(j).cmbSubject.getValue(),hBoxes.get(j).txtCourseID.getText())
-                );
-            }
+        hBoxes.get(j).txtCourseID.setOnAction(e -> {
+            hBoxes.get(j).setLists(
+                    idb.getSections(hBoxes.get(j).cmbSubject.getValue(), hBoxes.get(j).txtCourseID.getText()),
+                    idb.getSessions(hBoxes.get(j).cmbSubject.getValue(), hBoxes.get(j).txtCourseID.getText()),
+                    idb.getFormat(hBoxes.get(j).cmbSubject.getValue(), hBoxes.get(j).txtCourseID.getText()),
+                    idb.getInstructors(hBoxes.get(j).cmbSubject.getValue(), hBoxes.get(j).txtCourseID.getText())
+            );
         });
     }
     private void setSubjectOnAdd(int j){
@@ -153,6 +144,7 @@ public class Controller implements Initializable {
         terms.add(testTerm);
         cmbTerm.setItems(terms);
         cmbTerm.setPromptText("Select Term");
+
        /* cmbTerm.valueProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -188,17 +180,21 @@ public class Controller implements Initializable {
         }
         displayText.setText(output);
     }
-    private void showWarning(Text message) {
-        message.setFont(Font.font("Veranda", 20));
-        message.setFill(Color.RED);
+    private void showWarning(String title, String message) {
+        //message.setFont(Font.font("Veranda", 20));
+        //message.setFill(Color.RED);
         final Stage warning = new Stage();
-        warning.initModality(Modality.NONE);
-        TextFlow tf = new TextFlow();
-        tf.getChildren().add(message);
+        warning.setTitle(title);
+        warning.setMinWidth(250);
+        warning.initModality(Modality.APPLICATION_MODAL);
+        //TextFlow tf = new TextFlow();
+        //tf.getChildren().add(message);
+        Label label = new Label();
+        label.setText(message);
         VBox v = new VBox(20);
-        v.getChildren().add(tf);
+        v.getChildren().add(label);
         Scene warningScene = new Scene(v, 300, 200);
         warning.setScene(warningScene);
-        warning.show();
+        warning.showAndWait();
     }
 }
