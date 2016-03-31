@@ -31,32 +31,15 @@ public class Controller implements Initializable {
     @FXML
     Label displayText;
     @FXML
-    HBox top;
+    TopHBox top;
 
-    private ComboBox<Term> cmbTerm = new ComboBox<>();
-    private ListView<String> listCampus = new ListView<>();
-    private VBox vTerm = new VBox(5);
-
-    private final ObservableList<Term> terms = FXCollections.observableArrayList();
-    private ObservableList<String> campuses = FXCollections.observableArrayList();
     private ObservableList<HBox> hBoxList = FXCollections.observableArrayList();
-
     private ArrayList<CourseHBox> hBoxes = new ArrayList<>();
-    private ArrayList<DayVBox> days = new ArrayList<>();
-    private final Tooltip tooltip = new Tooltip();
 
     private InternalDataManager idb = new InternalDataManager();
 
     @Override
     public void initialize(URL location, ResourceBundle resources){
-        vTerm.getChildren().addAll(new Label("Desired Campuses"),listCampus);
-        top.getChildren().add(0, vTerm);
-        top.getChildren().add(0, cmbTerm);
-        listCampus.setMaxHeight(75);
-        listCampus.setMaxWidth(175);
-        tooltip.setText("Press control and left mouse click\n to select multiple entries.");
-        listCampus.setTooltip(tooltip);
-        listCampus.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         getTerms();
         CourseHBox course = new CourseHBox();
         hBoxList.add(0, course);
@@ -64,15 +47,7 @@ public class Controller implements Initializable {
         setDeleteAction(0);
         setCourseNumAction(0);
         listCourse.setItems(hBoxList);
-        vTerm.setAlignment(Pos.CENTER);
-        days.add(new DayVBox("Monday"));
-        days.add(new DayVBox("Tuesday"));
-        days.add(new DayVBox("Wednesday"));
-        days.add(new DayVBox("Thursday"));
-        days.add(new DayVBox("Friday"));
-        days.add(new DayVBox("Saturday"));
-        days.add(new DayVBox("Sunday"));
-        top.getChildren().addAll(days);
+
     }
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
@@ -85,7 +60,7 @@ public class Controller implements Initializable {
             updateHBoxPosition();
             setDeleteAction(0);
             setCourseNumAction(0);
-            setSubjectOnAdd(0);
+            //setSubjectOnAdd(0);
             setSubjectOnAction(0);
             listCourse.setItems((hBoxList));
         }
@@ -112,11 +87,11 @@ public class Controller implements Initializable {
             );
         });
     }
-    private void setSubjectOnAdd(int j){
+    /*private void setSubjectOnAdd(int j){
         if(cmbTerm.getValue() != null){
-            //hBoxes.get(j).setCmbSubject(idb.getSubjects(cmbTerm.getValue()));
+            hBoxes.get(j).setCmbSubject(idb.getSubjects(cmbTerm.getValue()));
         }
-    }
+    }*/
     private void updateHBoxPosition(){
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setOnRow(j);
@@ -131,9 +106,9 @@ public class Controller implements Initializable {
         Term testTerm = new Term();
         testTerm.setTerm(20160106, "Spring 2016");
         testTerm.toString();
-        terms.add(testTerm);
-        cmbTerm.setItems(terms);
-        cmbTerm.setPromptText("Select Term");
+        //terms.add(testTerm);
+        //cmbTerm.setItems(terms);
+        //cmbTerm.setPromptText("Select Term");
 
        /* cmbTerm.valueProperty().addListener(new ChangeListener<String>() {
             @Override
@@ -153,15 +128,15 @@ public class Controller implements Initializable {
         tabPane.getSelectionModel().select(resultsTab);
         String output = "";
         output += "Term: \n=====================\n";
-        output += cmbTerm.getValue() + "\n" ;
+        //output += cmbTerm.getValue() + "\n" ;
         output += "=====================\nCampuses: \n=====================\n";
-        output += listCampus.getSelectionModel().getSelectedItems().toString() + "\n";
+        //output += listCampus.getSelectionModel().getSelectedItems().toString() + "\n";
         output += "=====================\nDays: \n=====================\n";
-        for(DayVBox day: days){
+        /*for(DayVBox day: days){
             if(day.getDayData() != null){
                 output += (day.getDayData().toString()) + "\n";
             }
-        }
+        }*/
         output += "=====================\nCourses: \n=====================\n";
         for(CourseHBox row: hBoxes){
             if(row.getCourseData() != null){
