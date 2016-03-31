@@ -25,7 +25,7 @@ public class DayVBox extends VBox{
             "3:00 pm","4:00 pm","5:00 pm",
             "6:00 pm","7:00 pm","8:00 pm");
 
-    public DayVBox(String dayOfWeek){
+    DayVBox(String dayOfWeek){
         this.day = dayOfWeek;
         checkDay.setText(day);
         cmbTimeBefore.setItems(comboTimeItems);
@@ -33,7 +33,7 @@ public class DayVBox extends VBox{
         cmbTimeBefore.setValue(comboTimeItems.get(0));
         cmbTimeAfter.setValue(comboTimeItems.get(0));
         checkDay.setOnAction(e -> {
-                if(checkDay.isSelected() != true){
+                if(!checkDay.isSelected()){
                     cmbTimeAfter.setDisable(true);
                     cmbTimeBefore.setDisable(true);
                 }else{
@@ -53,9 +53,9 @@ public class DayVBox extends VBox{
         this.setAlignment(Pos.CENTER);
         checkDay.setAlignment(Pos.CENTER);
     }
-    public ArrayList<String> getDayData(){
+    ArrayList<String> getDayData(){
         ArrayList<String> dayInfo = new ArrayList<>();
-        if(checkDay.isSelected() == true){
+        if(checkDay.isSelected()){
             dayInfo.add(day);
             dayInfo.add(cmbTimeBefore.getValue());
             dayInfo.add(cmbTimeAfter.getValue());

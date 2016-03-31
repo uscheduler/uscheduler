@@ -24,7 +24,7 @@ import java.util.Collection;
  */
 public class CourseHBox extends HBox{
     private int onRow = 0;
-    private boolean isDisabled = false;
+    private boolean disabled = false;
     ComboBox<String> cmbSubject = new ComboBox<>();
     private ComboBox<String> cmbCourseAvail = new ComboBox<>();
     TextField txtCourseID = new TextField();
@@ -46,7 +46,10 @@ public class CourseHBox extends HBox{
     private ObservableList<String> instructors = FXCollections.observableArrayList();
     private final Tooltip tooltip = new Tooltip();
 
-    public CourseHBox(){
+    /**
+     *
+     */
+    CourseHBox(){
         vSubjCourse.getChildren().addAll(cmbSubject,txtCourseID,cmbCourseAvail);
         vSession.getChildren().addAll(new Label("Desired Session"),listSession);
         vSection.getChildren().addAll(new Label("Desired Section"),listSectionNumber);
@@ -106,14 +109,14 @@ public class CourseHBox extends HBox{
                 "Show ALL classes");
         cmbCourseAvail.setItems(comboAvailability);
         buttonDisable.setOnAction(e -> {
-                if(isDisabled == false) {
+                if(!disabled) {
                     vSubjCourse.setDisable(true);
                     vSection.setDisable(true);
                     vSession.setDisable(true);
                     vFormat.setDisable(true);
                     vInstructor.setDisable(true);
                     buttonDisable.setText("Enable");
-                    isDisabled = true;
+                    disabled = true;
                 }else{
                     vSubjCourse.setDisable(false);
                     vSection.setDisable(false);
@@ -121,7 +124,7 @@ public class CourseHBox extends HBox{
                     vFormat.setDisable(false);
                     vInstructor.setDisable(false);
                     buttonDisable.setText("Disable");
-                    isDisabled = false;
+                    disabled = false;
                 }
 
         });
@@ -131,20 +134,20 @@ public class CourseHBox extends HBox{
         subjectObjects.addAll(subjects);
         cmbSubject.setItems(subjectObjects);
     }
-    public void setCmbCourseID(ArrayList<String> courseIDs){
+    void setCmbCourseID(ArrayList<String> courseIDs){
         final ObservableList<String> courseIDObjects = FXCollections.observableArrayList();
         courseIDObjects.setAll(courseIDs);
         //cmbCourseID.setItems(courseIDObjects);
     }
-    public int getOnRow(){
+    int getOnRow(){
         return this.onRow;
     }
 
-    public int setOnRow(int j) {
+    int setOnRow(int j) {
         this.onRow = j;
         return this.onRow;
     }
-    public void setLists(Collection passedSection, Collection passedSession, Collection passedFormat, Collection passedInstructor){
+    void setLists(Collection passedSection, Collection passedSession, Collection passedFormat, Collection passedInstructor){
         this.sections.setAll(passedSection);
         if(passedSection.size() > 1){ this.sections.add(0, "All"); }
         this.sessions.setAll(passedSession);
@@ -168,9 +171,9 @@ public class CourseHBox extends HBox{
         this.formats.clear();
         this.instructors.clear();
     }
-    public ArrayList<String> getCourseData(){
+    ArrayList<String> getCourseData(){
         ArrayList<String> output = new ArrayList<>();
-        if(isDisabled == false){
+        if(!disabled){
             output.add(cmbSubject.getValue());
             output.add(cmbCourseAvail.getValue());
             output.add(txtCourseID.getText());
