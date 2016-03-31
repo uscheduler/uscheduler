@@ -1,7 +1,5 @@
 package uSchedule;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,17 +11,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import java.util.ArrayList;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.event.EventHandler;
-
 
 public class Controller implements Initializable {
 
@@ -87,7 +76,8 @@ public class Controller implements Initializable {
     }
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
-            showWarning("Warning","You have reached the maximum number of classes that can be taken in a semester.");
+            Popup.display(Alert.AlertType.WARNING, "Warning", "You have exceeded the total number of classes that" +
+                    "can be taken in a semester");
         }else{
             CourseHBox course = new CourseHBox();
             hBoxList.add(0, course);
@@ -179,22 +169,5 @@ public class Controller implements Initializable {
             }
         }
         displayText.setText(output);
-    }
-    private void showWarning(String title, String message) {
-        //message.setFont(Font.font("Veranda", 20));
-        //message.setFill(Color.RED);
-        final Stage warning = new Stage();
-        warning.setTitle(title);
-        warning.setMinWidth(250);
-        warning.initModality(Modality.APPLICATION_MODAL);
-        //TextFlow tf = new TextFlow();
-        //tf.getChildren().add(message);
-        Label label = new Label();
-        label.setText(message);
-        VBox v = new VBox(20);
-        v.getChildren().add(label);
-        Scene warningScene = new Scene(v, 300, 200);
-        warning.setScene(warningScene);
-        warning.showAndWait();
     }
 }

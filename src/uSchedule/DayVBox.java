@@ -53,6 +53,7 @@ public class DayVBox extends VBox{
         this.setAlignment(Pos.CENTER);
         checkDay.setAlignment(Pos.CENTER);
     }
+
     ArrayList<String> getDayData(){
         ArrayList<String> dayInfo = new ArrayList<>();
         if(checkDay.isSelected()){
