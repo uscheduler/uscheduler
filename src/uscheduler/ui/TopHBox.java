@@ -2,6 +2,7 @@ package uscheduler.ui;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -16,7 +17,7 @@ public class TopHBox extends HBox {
     private ComboBox<Term> cmbTerm = new ComboBox<>();
     private ListView<String> listCampus = new ListView<>();
     private VBox vCampus = new VBox(5);
-    private VBox vLabels = new VBox(5);
+    private VBox vLabels = new VBox();
     private Label before = new Label("No Classes Before:");
     private Label after = new Label("No Classes After:");
     private final Tooltip tooltip = new Tooltip();
@@ -44,7 +45,10 @@ public class TopHBox extends HBox {
         listCampus.setMaxWidth(175);
         listCampus.setTooltip(tooltip);
         listCampus.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        before.setAlignment(Pos.CENTER);
+        vCampus.setAlignment(Pos.CENTER);
+        vLabels.setAlignment(Pos.CENTER);
+        before.setPadding(new Insets(30, 10, 0, 0));
+        after.setPadding(new Insets(20, 0, 0, 0));
         this.setAlignment(Pos.CENTER);
         this.setSpacing(15);
     }
