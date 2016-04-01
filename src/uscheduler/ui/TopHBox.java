@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 import uscheduler.internaldata.Campuses;
 import uscheduler.internaldata.Terms;
 import java.util.ArrayList;
@@ -56,6 +57,17 @@ public class TopHBox extends HBox {
     public void setTerms(ArrayList<Terms.Term> t){
         this.terms.addAll(t);
         cmbTerm.setItems(terms);
+        cmbTerm.setConverter(new StringConverter<Terms.Term>() {
+            @Override
+            public String toString(Terms.Term object) {
+                return object.termName();
+            }
+
+            @Override
+            public Terms.Term fromString(String string) {
+                return null;
+            }
+        });
     }
     public void setCampuses(ArrayList<Campuses> c){
         this.campuses.addAll(c);
