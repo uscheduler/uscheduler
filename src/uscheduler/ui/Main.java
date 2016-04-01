@@ -1,4 +1,4 @@
-package uSchedule;
+package uscheduler.ui;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -13,12 +13,10 @@ public class Main extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("uSchedule.fxml"));
         Parent root = loader.load();
         Controller myController = loader.getController();
-        primaryStage.setTitle("uSchedule - Kennesaw's SMART Student Scheduler");
+        primaryStage.setTitle("uscheduler - Kennesaw's SMART Student Scheduler");
         primaryStage.setScene(new Scene(root, 1353, 730));
         primaryStage.show();
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+    public static void main(String[] args) { launch(args); }
 }

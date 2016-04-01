@@ -1,4 +1,4 @@
-package uSchedule;
+package uscheduler.ui;
 
 import java.util.ArrayList;
 import java.util.Collection;

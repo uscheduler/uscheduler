@@ -1,7 +1,5 @@
-package uSchedule;
+package uscheduler.ui;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,19 +9,10 @@ import java.util.ResourceBundle;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import java.util.ArrayList;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.event.EventHandler;
 
+import java.util.ArrayList;
 
 public class Controller implements Initializable {
 
@@ -42,32 +31,17 @@ public class Controller implements Initializable {
     @FXML
     Label displayText;
     @FXML
-    HBox top;
+    GridPane grid;
 
-    private ComboBox<Term> cmbTerm = new ComboBox<>();
-    private ListView<String> listCampus = new ListView<>();
-    private VBox vTerm = new VBox(5);
-
-    private final ObservableList<Term> terms = FXCollections.observableArrayList();
-    private ObservableList<String> campuses = FXCollections.observableArrayList();
+    private TopHBox top = new TopHBox();
     private ObservableList<HBox> hBoxList = FXCollections.observableArrayList();
-
     private ArrayList<CourseHBox> hBoxes = new ArrayList<>();
-    private ArrayList<DayVBox> days = new ArrayList<>();
-    private final Tooltip tooltip = new Tooltip();
 
     private InternalDataManager idb = new InternalDataManager();
 
     @Override
     public void initialize(URL location, ResourceBundle resources){
-        vTerm.getChildren().addAll(new Label("Desired Campuses"),listCampus);
-        top.getChildren().add(0, vTerm);
-        top.getChildren().add(0, cmbTerm);
-        listCampus.setMaxHeight(75);
-        listCampus.setMaxWidth(175);
-        tooltip.setText("Press control and left mouse click\n to select multiple entries.");
-        listCampus.setTooltip(tooltip);
-        listCampus.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        grid.getChildren().add(0, top);
         getTerms();
         CourseHBox course = new CourseHBox();
         hBoxList.add(0, course);
@@ -75,19 +49,12 @@ public class Controller implements Initializable {
         setDeleteAction(0);
         setCourseNumAction(0);
         listCourse.setItems(hBoxList);
-        vTerm.setAlignment(Pos.CENTER);
-        days.add(new DayVBox("Monday"));
-        days.add(new DayVBox("Tuesday"));
-        days.add(new DayVBox("Wednesday"));
-        days.add(new DayVBox("Thursday"));
-        days.add(new DayVBox("Friday"));
-        days.add(new DayVBox("Saturday"));
-        days.add(new DayVBox("Sunday"));
-        top.getChildren().addAll(days);
+
     }
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
-            showWarning("Warning","You have reached the maximum number of classes that can be taken in a semester.");
+            Popup.display(Alert.AlertType.WARNING, "Warning", "You have exceeded the total number of classes that" +
+                    "can be taken in a semester");
         }else{
             CourseHBox course = new CourseHBox();
             hBoxList.add(0, course);
@@ -95,7 +62,7 @@ public class Controller implements Initializable {
             updateHBoxPosition();
             setDeleteAction(0);
             setCourseNumAction(0);
-            setSubjectOnAdd(0);
+            //setSubjectOnAdd(0);
             setSubjectOnAction(0);
             listCourse.setItems((hBoxList));
         }
@@ -122,11 +89,11 @@ public class Controller implements Initializable {
             );
         });
     }
-    private void setSubjectOnAdd(int j){
+    /*private void setSubjectOnAdd(int j){
         if(cmbTerm.getValue() != null){
-            //hBoxes.get(j).setCmbSubject(idb.getSubjects(cmbTerm.getValue()));
+            hBoxes.get(j).setCmbSubject(idb.getSubjects(cmbTerm.getValue()));
         }
-    }
+    }*/
     private void updateHBoxPosition(){
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setOnRow(j);
@@ -141,9 +108,9 @@ public class Controller implements Initializable {
         Term testTerm = new Term();
         testTerm.setTerm(20160106, "Spring 2016");
         testTerm.toString();
-        terms.add(testTerm);
-        cmbTerm.setItems(terms);
-        cmbTerm.setPromptText("Select Term");
+        //terms.add(testTerm);
+        //cmbTerm.setItems(terms);
+        //cmbTerm.setPromptText("Select Term");
 
        /* cmbTerm.valueProperty().addListener(new ChangeListener<String>() {
             @Override
@@ -163,15 +130,15 @@ public class Controller implements Initializable {
         tabPane.getSelectionModel().select(resultsTab);
         String output = "";
         output += "Term: \n=====================\n";
-        output += cmbTerm.getValue() + "\n" ;
+        //output += cmbTerm.getValue() + "\n" ;
         output += "=====================\nCampuses: \n=====================\n";
-        output += listCampus.getSelectionModel().getSelectedItems().toString() + "\n";
+        //output += listCampus.getSelectionModel().getSelectedItems().toString() + "\n";
         output += "=====================\nDays: \n=====================\n";
-        for(DayVBox day: days){
+        /*for(DayVBox day: days){
             if(day.getDayData() != null){
                 output += (day.getDayData().toString()) + "\n";
             }
-        }
+        }*/
         output += "=====================\nCourses: \n=====================\n";
         for(CourseHBox row: hBoxes){
             if(row.getCourseData() != null){
@@ -179,22 +146,5 @@ public class Controller implements Initializable {
             }
         }
         displayText.setText(output);
-    }
-    private void showWarning(String title, String message) {
-        //message.setFont(Font.font("Veranda", 20));
-        //message.setFill(Color.RED);
-        final Stage warning = new Stage();
-        warning.setTitle(title);
-        warning.setMinWidth(250);
-        warning.initModality(Modality.APPLICATION_MODAL);
-        //TextFlow tf = new TextFlow();
-        //tf.getChildren().add(message);
-        Label label = new Label();
-        label.setText(message);
-        VBox v = new VBox(20);
-        v.getChildren().add(label);
-        Scene warningScene = new Scene(v, 300, 200);
-        warning.setScene(warningScene);
-        warning.showAndWait();
     }
 }
