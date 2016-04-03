@@ -47,7 +47,6 @@ public class Controller implements Initializable {
     private ArrayList<Terms.Term> terms = new ArrayList<>();
     private ArrayList<Campuses.Campus> campuses = new ArrayList<>();
     private ArrayList<Subjects.Subject> subjects = new ArrayList<>();
-    private InternalDataManager idb = new InternalDataManager();
 
     @Override
     public void initialize(URL location, ResourceBundle resources){
@@ -57,7 +56,7 @@ public class Controller implements Initializable {
         hBoxList.add(0, course);
         hBoxes.add(0, course);
         setDeleteAction(0);
-        //setCourseNumAction(0);
+        setCourseIDAction(0);
         listCourse.setItems(hBoxList);
 
     }
@@ -71,9 +70,8 @@ public class Controller implements Initializable {
             hBoxes.add(0, course);
             updateHBoxPosition();
             setDeleteAction(0);
-            //setCourseNumAction(0);
+            setCourseIDAction(0);
             setSubjectOnAdd(0);
-            setSubjectOnAction(0);
             listCourse.setItems((hBoxList));
         }
     }
@@ -84,21 +82,9 @@ public class Controller implements Initializable {
                 updateHBoxPosition();
         });
     }
-    private void setSubjectOnAction(int j){
-        hBoxes.get(j).cmbSubject.setOnAction(e -> {
-                //hBoxes.get(j).setCmbCourseID(idb.getCourseNum(hBoxes.get(j).cmbSubject.getValue()));
-        });
+    private void setCourseIDAction(int j){
+        hBoxes.get(j).setCourseIDAction(top.cmbTerm.getValue());
     }
-    /*private void setCourseNumAction(int j){
-        hBoxes.get(j).txtCourseID.setOnAction(e -> {
-            hBoxes.get(j).setLists(
-                    idb.getSections(hBoxes.get(j).cmbSubject.getValue(), hBoxes.get(j).txtCourseID.getText()),
-                    idb.getSessions(hBoxes.get(j).cmbSubject.getValue(), hBoxes.get(j).txtCourseID.getText()),
-                    idb.getFormat(hBoxes.get(j).cmbSubject.getValue(), hBoxes.get(j).txtCourseID.getText()),
-                    idb.getInstructors(hBoxes.get(j).cmbSubject.getValue(), hBoxes.get(j).txtCourseID.getText())
-            );
-        });
-    }*/
     private void setSubjectOnAdd(int j){
         if(top.cmbTerm.getValue() != null){
             hBoxes.get(j).setSubjects(subjects);
@@ -108,8 +94,6 @@ public class Controller implements Initializable {
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setOnRow(j);
             setDeleteAction(j);
-            //setCourseNumAction(j);
-            setSubjectOnAction(j);
             System.out.println(hBoxes.get(j).getOnRow());
         }
     }
@@ -133,14 +117,16 @@ public class Controller implements Initializable {
         terms.addAll(Terms.getAll(Terms.PK_DESC));
         top.setTerms(terms);
         top.cmbTerm.valueProperty().addListener(e -> {
-            campuses.addAll(Campuses.getAll(Campuses.PK_ASC));
-            top.setCampuses(campuses);
-            subjects.addAll(Subjects.getAll(Subjects.PK_ASC));
-            for(int j = 0; j < hBoxes.size(); j++){
-                hBoxes.get(j).setSubjects(subjects);
-                setSubjectOnAction(j);
-            }
+            setSubjectsAndCampuses();
         });
+    }
+    private void setSubjectsAndCampuses(){
+        campuses.addAll(Campuses.getAll(Campuses.PK_ASC));
+        top.setCampuses(campuses);
+        subjects.addAll(Subjects.getAll(Subjects.PK_ASC));
+        for(int j = 0; j < hBoxes.size(); j++){
+            hBoxes.get(j).setSubjects(subjects);
+        }
     }
     public void handleGenerateSchedule(ActionEvent e) {
         tabPane.getSelectionModel().select(resultsTab);
