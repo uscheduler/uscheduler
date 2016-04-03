@@ -1,5 +1,6 @@
 package uscheduler.ui;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -9,6 +10,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
+import uscheduler.externaldata.HTMLFormatException;
+import uscheduler.externaldata.NoDataFoundException;
+import uscheduler.internaldata.*;
+import uscheduler.util.Importer;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -18,7 +26,7 @@ import java.util.Collection;
 public class CourseHBox extends HBox{
     private int onRow = 0;
     private boolean disabled = false;
-    ComboBox<String> cmbSubject = new ComboBox<>();
+    ComboBox<Subjects.Subject> cmbSubject = new ComboBox<>();
     private ComboBox<String> cmbCourseAvail = new ComboBox<>();
     TextField txtCourseID = new TextField();
     private ListView listSectionNumber = new ListView();
@@ -33,11 +41,13 @@ public class CourseHBox extends HBox{
     private VBox vButtons = new VBox(5);
     Button buttonRemove = new Button("Remove");
     private Button buttonDisable = new Button("Disable");
-    private ObservableList<String> sections = FXCollections.observableArrayList();
-    private ObservableList<String> sessions = FXCollections.observableArrayList();
+    private ObservableList<Subjects.Subject> subjects = FXCollections.observableArrayList();
+    private ObservableList<Sections.Section> sections = FXCollections.observableArrayList();
+    private ObservableList<Sessions.Session> sessions = FXCollections.observableArrayList();
     private ObservableList<String> formats = FXCollections.observableArrayList();
-    private ObservableList<String> instructors = FXCollections.observableArrayList();
+    private ObservableList<Instructors.Instructor> instructors = FXCollections.observableArrayList();
     private final Tooltip tooltip = new Tooltip();
+
 
     /**
      *
@@ -54,13 +64,6 @@ public class CourseHBox extends HBox{
         fillStaticFields();
         this.getChildren().addAll(vSubjCourse,vSection,vSession,vFormat,vInstructor,vButtons);
         this.setSpacing(5);
-        txtCourseID.focusedProperty().addListener( (ob, oldValue, newValue) -> {
-            if(newValue)
-                    System.out.println("TextField is in focus");
-                else
-                    System.out.println("TextField is out of focus");
-
-        });
     }
     private void formatItems(){
         cmbSubject.setPromptText("Select Subject");
@@ -122,15 +125,20 @@ public class CourseHBox extends HBox{
 
         });
     }
-    public void setCmbSubject(ArrayList<String> subjects){
-        final ObservableList<String> subjectObjects = FXCollections.observableArrayList();
-        subjectObjects.addAll(subjects);
-        cmbSubject.setItems(subjectObjects);
-    }
-    void setCmbCourseID(ArrayList<String> courseIDs){
-        final ObservableList<String> courseIDObjects = FXCollections.observableArrayList();
-        courseIDObjects.setAll(courseIDs);
-        //cmbCourseID.setItems(courseIDObjects);
+    void setSubjects(ArrayList<Subjects.Subject> s){
+        this.subjects.addAll(s);
+        cmbSubject.setItems(subjects);
+        cmbSubject.setConverter(new StringConverter<Subjects.Subject>() {
+            @Override
+            public String toString(Subjects.Subject object) {
+                return object.subjectName();
+            }
+
+            @Override
+            public Subjects.Subject fromString(String string) {
+                return null;
+            }
+        });
     }
     int getOnRow(){
         return this.onRow;
@@ -142,13 +150,9 @@ public class CourseHBox extends HBox{
     }
     void setLists(Collection passedSection, Collection passedSession, Collection passedFormat, Collection passedInstructor){
         this.sections.setAll(passedSection);
-        if(passedSection.size() > 1){ this.sections.add(0, "All"); }
         this.sessions.setAll(passedSession);
-        if(passedSession.size() > 1){ this.sessions.add(0, "All"); }
         this.formats.setAll(passedFormat);
-        if(passedFormat.size() > 1){ this.formats.add(0, "All"); }
         this.instructors.setAll(passedInstructor);
-        if(passedInstructor.size() > 1){ this.instructors.add(0,"All"); }
         this.listSectionNumber.setItems(this.sections);
         this.listSession.setItems(this.sessions);
         this.listFormat.setItems(this.formats);
@@ -167,7 +171,7 @@ public class CourseHBox extends HBox{
     ArrayList<String> getCourseData(){
         ArrayList<String> output = new ArrayList<>();
         if(!disabled){
-            output.add(cmbSubject.getValue());
+            //output.add(cmbSubject.getValue());
             output.add(cmbCourseAvail.getValue());
             output.add(txtCourseID.getText());
             output.add(listSectionNumber.getSelectionModel().getSelectedItems().toString());
@@ -176,5 +180,32 @@ public class CourseHBox extends HBox{
             output.add(listInstructor.getSelectionModel().getSelectedItems().toString());
             return output;
         }else{ return null; }
+    }
+    void setCourseIDAction(Terms.Term t){
+        txtCourseID.focusedProperty().addListener( (ob, oldValue, newValue) -> {
+            if(newValue) {
+                System.out.println("TextField is in focus");
+            }
+            else {
+                System.out.println("TextField is out of focus");
+                try{
+                    Importer.loadSections(t,cmbSubject.getValue(),txtCourseID.getText());
+                }catch (HTMLFormatException e){
+                    Popup.display(Alert.AlertType.ERROR, "HTMLFormatException", "It appears that KSU has changed their courses page." +
+                            "There is a chance the data collected is corrupt, please contact uscheduler team for resolution.");
+                    Platform.exit();
+                }catch (IOException e){
+                    Popup.display(Alert.AlertType.ERROR, "IOException", "Looks like you do not have Internet Connectivity." +
+                            "  Please fix then relaunch the application");
+                    Platform.exit();
+                }catch (NoDataFoundException e){
+                    Popup.display(Alert.AlertType.ERROR, "NoDataFoundException", "Unable to find campuses and/or subjects" +
+                            "KSU's website may be experiencing difficulty, please try again later.");
+                    Platform.exit();
+                }
+                sections.addAll(Sections.getAll());
+                listSectionNumber.setItems(sections);
+            }
+        });
     }
 }
