@@ -9,6 +9,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
+import uscheduler.internaldata.Subjects;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -18,7 +20,7 @@ import java.util.Collection;
 public class CourseHBox extends HBox{
     private int onRow = 0;
     private boolean disabled = false;
-    ComboBox<String> cmbSubject = new ComboBox<>();
+    ComboBox<Subjects.Subject> cmbSubject = new ComboBox<>();
     private ComboBox<String> cmbCourseAvail = new ComboBox<>();
     TextField txtCourseID = new TextField();
     private ListView listSectionNumber = new ListView();
@@ -33,6 +35,7 @@ public class CourseHBox extends HBox{
     private VBox vButtons = new VBox(5);
     Button buttonRemove = new Button("Remove");
     private Button buttonDisable = new Button("Disable");
+    private ObservableList<Subjects.Subject> subjects = FXCollections.observableArrayList();
     private ObservableList<String> sections = FXCollections.observableArrayList();
     private ObservableList<String> sessions = FXCollections.observableArrayList();
     private ObservableList<String> formats = FXCollections.observableArrayList();
@@ -122,10 +125,20 @@ public class CourseHBox extends HBox{
 
         });
     }
-    public void setCmbSubject(ArrayList<String> subjects){
-        final ObservableList<String> subjectObjects = FXCollections.observableArrayList();
-        subjectObjects.addAll(subjects);
-        cmbSubject.setItems(subjectObjects);
+    public void setSubjects(ArrayList<Subjects.Subject> s){
+        this.subjects.addAll(s);
+        cmbSubject.setItems(subjects);
+        cmbSubject.setConverter(new StringConverter<Subjects.Subject>() {
+            @Override
+            public String toString(Subjects.Subject object) {
+                return object.subjectName();
+            }
+
+            @Override
+            public Subjects.Subject fromString(String string) {
+                return null;
+            }
+        });
     }
     void setCmbCourseID(ArrayList<String> courseIDs){
         final ObservableList<String> courseIDObjects = FXCollections.observableArrayList();
@@ -167,7 +180,7 @@ public class CourseHBox extends HBox{
     ArrayList<String> getCourseData(){
         ArrayList<String> output = new ArrayList<>();
         if(!disabled){
-            output.add(cmbSubject.getValue());
+            //output.add(cmbSubject.getValue());
             output.add(cmbCourseAvail.getValue());
             output.add(txtCourseID.getText());
             output.add(listSectionNumber.getSelectionModel().getSelectedItems().toString());

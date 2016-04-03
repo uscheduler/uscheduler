@@ -7,8 +7,10 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uscheduler.internaldata.Campuses;
+import uscheduler.internaldata.Subjects;
 import uscheduler.internaldata.Terms;
 import java.util.ArrayList;
 
@@ -16,15 +18,15 @@ import java.util.ArrayList;
  * Created by aa8439 on 3/31/2016.
  */
 public class TopHBox extends HBox {
-    private ComboBox<Terms.Term> cmbTerm = new ComboBox<>();
-    private ListView<String> listCampus = new ListView<>();
+    ComboBox<Terms.Term> cmbTerm = new ComboBox<>();
+    private ListView<Campuses.Campus> listCampus = new ListView<>();
     private VBox vCampus = new VBox(5);
     private VBox vLabels = new VBox();
     private Label before = new Label("No Classes Before:");
     private Label after = new Label("No Classes After:");
     private final Tooltip tooltip = new Tooltip();
-    private final ObservableList<Terms.Term> terms = FXCollections.observableArrayList();
-    private ObservableList<Campuses> campuses = FXCollections.observableArrayList();
+    private ObservableList<Terms.Term> terms = FXCollections.observableArrayList();
+    private ObservableList<Campuses.Campus> campuses = FXCollections.observableArrayList();
     private ArrayList<DayVBox> days = new ArrayList<>();
 
     TopHBox() {
@@ -69,7 +71,23 @@ public class TopHBox extends HBox {
             }
         });
     }
-    public void setCampuses(ArrayList<Campuses> c){
+    public void setCampuses(ArrayList<Campuses.Campus> c){
         this.campuses.addAll(c);
+        listCampus.setItems(campuses);
+        listCampus.setCellFactory(new Callback<ListView<Campuses.Campus>, ListCell<Campuses.Campus>>() {
+            @Override
+            public ListCell<Campuses.Campus> call(ListView<Campuses.Campus> param) {
+                ListCell<Campuses.Campus> cell = new ListCell<Campuses.Campus>() {
+                    @Override
+                    protected void updateItem(Campuses.Campus o, boolean bln) {
+                        super.updateItem(o, bln);
+                        if (o != null) {
+                            setText(o.campusName());
+                        }
+                    }
+                };
+                return cell;
+            }
+        });
     }
 }
