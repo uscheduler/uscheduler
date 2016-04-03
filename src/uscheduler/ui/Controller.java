@@ -1,5 +1,6 @@
 package uscheduler.ui;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -71,7 +72,7 @@ public class Controller implements Initializable {
             updateHBoxPosition();
             setDeleteAction(0);
             //setCourseNumAction(0);
-            //setSubjectOnAdd(0);
+            setSubjectOnAdd(0);
             setSubjectOnAction(0);
             listCourse.setItems((hBoxList));
         }
@@ -98,11 +99,11 @@ public class Controller implements Initializable {
             );
         });
     }*/
-    /*private void setSubjectOnAdd(int j){
-        if(cmbTerm.getValue() != null){
-            hBoxes.get(j).setCmbSubject(idb.getSubjects(cmbTerm.getValue()));
+    private void setSubjectOnAdd(int j){
+        if(top.cmbTerm.getValue() != null){
+            hBoxes.get(j).setSubjects(subjects);
         }
-    }*/
+    }
     private void updateHBoxPosition(){
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setOnRow(j);
@@ -119,12 +120,15 @@ public class Controller implements Initializable {
         }catch (HTMLFormatException e){
             Popup.display(Alert.AlertType.ERROR, "HTMLFormatException", "It appears that KSU has changed their courses page." +
                     "There is a chance the data collected is corrupt, please contact uscheduler team for resolution.");
+            Platform.exit();
         }catch (IOException e){
             Popup.display(Alert.AlertType.ERROR, "IOException", "Looks like you do not have Internet Connectivity." +
-                    "Please fix then relaunch the application");
+                    "  Please fix then relaunch the application");
+            Platform.exit();
         }catch (NoDataFoundException e){
             Popup.display(Alert.AlertType.ERROR, "NoDataFoundException", "Unable to find campuses and/or subjects" +
                     "KSU's website may be experiencing difficulty, please try again later.");
+            Platform.exit();
         }
         terms.addAll(Terms.getAll(Terms.PK_DESC));
         top.setTerms(terms);

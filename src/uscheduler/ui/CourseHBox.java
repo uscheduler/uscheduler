@@ -125,7 +125,7 @@ public class CourseHBox extends HBox{
 
         });
     }
-    public void setSubjects(ArrayList<Subjects.Subject> s){
+    void setSubjects(ArrayList<Subjects.Subject> s){
         this.subjects.addAll(s);
         cmbSubject.setItems(subjects);
         cmbSubject.setConverter(new StringConverter<Subjects.Subject>() {

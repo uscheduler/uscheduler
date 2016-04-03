@@ -56,7 +56,7 @@ public class TopHBox extends HBox {
         this.setAlignment(Pos.CENTER);
         this.setSpacing(15);
     }
-    public void setTerms(ArrayList<Terms.Term> t){
+    void setTerms(ArrayList<Terms.Term> t){
         this.terms.addAll(t);
         cmbTerm.setItems(terms);
         cmbTerm.setConverter(new StringConverter<Terms.Term>() {
@@ -71,7 +71,7 @@ public class TopHBox extends HBox {
             }
         });
     }
-    public void setCampuses(ArrayList<Campuses.Campus> c){
+    void setCampuses(ArrayList<Campuses.Campus> c){
         this.campuses.addAll(c);
         listCampus.setItems(campuses);
         listCampus.setCellFactory(new Callback<ListView<Campuses.Campus>, ListCell<Campuses.Campus>>() {
