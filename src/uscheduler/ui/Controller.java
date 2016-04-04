@@ -63,7 +63,7 @@ public class Controller implements Initializable {
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
             Popup.display(Alert.AlertType.WARNING, "Warning", "You have exceeded the total number of classes that" +
-                    "can be taken in a semester");
+                    " can be taken in a semester");
         }else{
             CourseHBox course = new CourseHBox();
             hBoxList.add(0, course);
