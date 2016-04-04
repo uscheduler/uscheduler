@@ -20,3 +20,8 @@ public class Main extends Application {
 
     public static void main(String[] args) { launch(args); }
 }
+/*private void setSubjectOnAdd(int j){
+        if(top.cmbTerm.getValue() != null){
+            hBoxes.get(j).setSubjects(subjects);
+        }
+    }*/
