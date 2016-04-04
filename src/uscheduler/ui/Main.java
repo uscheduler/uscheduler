@@ -13,7 +13,7 @@ public class Main extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("uSchedule.fxml"));
         Parent root = loader.load();
         Controller myController = loader.getController();
-        primaryStage.setTitle("uscheduler - Kennesaw's SMART Student Scheduler");
+        primaryStage.setTitle("uScheduler - Kennesaw's SMART Student Scheduler");
         primaryStage.setScene(new Scene(root, 1353, 730));
         primaryStage.show();
     }
