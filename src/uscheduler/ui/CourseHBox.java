@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uscheduler.externaldata.HTMLFormatException;
 import uscheduler.externaldata.NoDataFoundException;
@@ -189,6 +190,7 @@ public class CourseHBox extends HBox{
             else {
                 System.out.println("TextField is out of focus");
                 try{
+                    System.out.println(txtCourseID.getText());
                     Importer.loadSections(t,cmbSubject.getValue(),txtCourseID.getText());
                 }catch (HTMLFormatException e){
                     Popup.display(Alert.AlertType.ERROR, "HTMLFormatException", "It appears that KSU has changed their courses page." +
@@ -199,13 +201,51 @@ public class CourseHBox extends HBox{
                             "  Please fix then relaunch the application");
                     Platform.exit();
                 }catch (NoDataFoundException e){
-                    Popup.display(Alert.AlertType.ERROR, "NoDataFoundException", "Unable to find campuses and/or subjects" +
-                            "KSU's website may be experiencing difficulty, please try again later.");
-                    Platform.exit();
+                    Popup.display(Alert.AlertType.WARNING, "NoDataFoundException", "It appears you entered an incorrect " +
+                            "course ID.  Please try entering another.  If you are sure the number you entered is correct," +
+                            " please try entering it again.");
                 }
-                sections.addAll(Sections.getAll());
-                listSectionNumber.setItems(sections);
+                setSections(Sections.getAll());
+                
             }
         });
     }
+    void setSections(ArrayList<Sections.Section> s){
+        this.sections.addAll(s);
+        listSectionNumber.setItems(sections);
+        listSectionNumber.setCellFactory(new Callback<ListView<Sections.Section>, ListCell<Sections.Section>>() {
+            @Override
+            public ListCell<Sections.Section> call(ListView<Sections.Section> param) {
+                ListCell<Sections.Section> cell = new ListCell<Sections.Section>() {
+                    @Override
+                    protected void updateItem(Sections.Section o, boolean bln) {
+                        super.updateItem(o, bln);
+                        if (o != null) {
+                            setText(o.sectionNumber());
+                        }
+                    }
+                };
+                return cell;
+            }
+        });
+    }/*
+    void setSessions(ArrayList<Sections.Section> s){
+        this.sessions.addAll(s);
+        listSession.setItems(sessions);
+        listSession.setCellFactory(new Callback<ListView<Sessions.Session>, ListCell<Sessions.Session>>() {
+            @Override
+            public ListCell<Sessions.Session> call(ListView<Sessions.Session> param) {
+                ListCell<Sessions.Session> cell = new ListCell<Sessions.Session>() {
+                    @Override
+                    protected void updateItem(Sessions.Session o, boolean bln) {
+                        super.updateItem(o, bln);
+                        if (o != null) {
+                            setText(o.sessionName());
+                        }
+                    }
+                };
+                return cell;
+            }
+        });
+    }*/
 }
