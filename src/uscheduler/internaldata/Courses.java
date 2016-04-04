@@ -5,6 +5,7 @@
  */
 package uscheduler.internaldata;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import uscheduler.internaldata.Subjects.Subject;
@@ -39,7 +40,7 @@ public final class Courses implements Table {
      * 
      * @param pSubj the Subject of the Course to add.
      * @param pCourseNum the course number of the Course to add.
-     * @throws IllegalArgumentException if pSubject or pCourseNum is null.
+     * @throws IllegalArgumentException if pSubject or pCourseNum is null or doesn't contain at least one non-white-space character.
      * @return the newly added Course if no such Course already existed, otherwise returns the already existing Course.
      */
     public static Course add(Subject pSubj, String pCourseNum){
@@ -72,6 +73,15 @@ public final class Courses implements Table {
      */
     public static Course get(Subject pSubj, String pCourseNum){
         return cCourses.get(pSubj.pkey() + "~" + pCourseNum);
+    }
+    /**
+     * Returns from the Courses table all Courses, in no particular order.
+     * This method is used for testing and debugging and does not have a use in the final app.
+     * 
+     * @return ArrayList of all Courses in the Courses table. 
+     */
+    public static ArrayList<Course> getAll(){
+        return new ArrayList<>(cCourses.values());
     }
     //************************************************************************************************
     //***************************************Comparators*********************************************
@@ -111,8 +121,11 @@ public final class Courses implements Table {
                 throw new IllegalArgumentException("A course's Subject cannot be null.");
             if (pCourseNum == null)
                 throw new IllegalArgumentException("A course's course number cannot be null.");
+            String trimmedCourseNum = pCourseNum.trim();
+            if (trimmedCourseNum.isEmpty())
+                throw new IllegalArgumentException("A course's course number must contain at least one non-white-space character.");
             cSubject = pSubject;
-            cCourseNum = pCourseNum;
+            cCourseNum = trimmedCourseNum;
         }
         /**
          * @return the Course's Subject

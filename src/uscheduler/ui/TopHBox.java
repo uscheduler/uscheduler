@@ -10,7 +10,6 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uscheduler.internaldata.Campuses;
-import uscheduler.internaldata.Subjects;
 import uscheduler.internaldata.Terms;
 import java.util.ArrayList;
 
@@ -30,7 +29,7 @@ public class TopHBox extends HBox {
     private ArrayList<DayVBox> days = new ArrayList<>();
 
     TopHBox() {
-        vCampus.getChildren().addAll(new Label("Desired Campuses"),listCampus);
+        vCampus.getChildren().addAll(new Label("Desired Campuses"), listCampus);
         vLabels.getChildren().addAll(before, after);
         this.getChildren().addAll(cmbTerm, vCampus, vLabels);
         days.add(new DayVBox("Monday", 8, 20));

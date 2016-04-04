@@ -65,7 +65,7 @@ public class UTime implements Comparable<UTime>{
     /**
      * Returns the distance, in terms of minutes, from this UTime to some other UTime.
      * The distance is positive if this UTime is less than the other UTime, 0 if this UTime equals the other UTime, negative otherwise.
-     * @param pOther the other UTime in which to calculate the distance to
+     * @param pOther the other UTime in which to calculate the distance to. Not null.
      * @return the distance, in terms of minutes, from this UTime to pOther
      */  
     public int minutesTo(UTime pOther){
@@ -75,13 +75,25 @@ public class UTime implements Comparable<UTime>{
     /**
      * Returns true if this UTime is less than some other UTime. 
      * "12:00 am" (midnight) is the earliest minute of the day while "12:59 pm" is the last minute of the day.
-     * @param pOther the other Time in which to test if this UTime is less than
+     * @param pOther the other Time in which to test if this UTime is less than. Not null.
      * @return true if this UTime is less than pOther
      */  
     public boolean lessThan(UTime pOther){
         if (this.cHour != pOther.cHour)
             return this.cHour < pOther.cHour;
         return this.cMinute < pOther.cMinute;
+    }  
+
+    /**
+     * Returns true if this UTime is greater than some other UTime. 
+     * "12:00 am" (midnight) is the earliest minute of the day while "12:59 pm" is the last minute of the day.
+     * @param pOther the other Time in which to test if this UTime is greater than. Not null.
+     * @return true if this UTime is greater than pOther
+     */  
+    public boolean greaterThan(UTime pOther){
+        if (this.cHour != pOther.cHour)
+            return this.cHour > pOther.cHour;
+        return this.cMinute > pOther.cMinute;
     }  
     
     /**

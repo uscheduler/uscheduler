@@ -6,12 +6,17 @@
 package uscheduler.internaldata;
 
 import java.time.DayOfWeek;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.TreeSet;
 import uscheduler.internaldata.Campuses.Campus;
 import uscheduler.internaldata.Courses.Course;
 import uscheduler.internaldata.Instructors.Instructor;
@@ -32,6 +37,13 @@ public final class Sections implements Table{
      * The HashMap to store Section objects using the section's pkey() as the key into the map. 
      */
     private static final HashMap<String, Section> cSections = new HashMap();
+    
+    /**
+     * The HashMap to store the term+course index, in which the key of the index is: t.pkey() + "~" + c.pkey()
+     * The key maps to a linked list, which stores all Sections for the given term and course.
+     * This HashMap is used to provide quick access to all sections of a given term and course.
+     */
+    private static final HashMap<String, LinkedList<Section>> cTermCourseIndex = new HashMap();
     
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
@@ -67,63 +79,26 @@ public final class Sections implements Table{
         Section temp = new Section(pCrn,  pSession,  pCourse,  pCampus,  pSectionNum,  pIMethod,  pSeatsAvail,  pWaitlistAvail);
         Section found = cSections.get(temp.pkey());
         if (found == null){
+            
+            //Add the new section to the "table"
             cSections.put(temp.pkey(), temp);
+            
+            //Add the new section to the term+course index
+            String key = pSession.term().pkey() + "~" + pCourse.pkey();
+            LinkedList<Section> sectionsList = cTermCourseIndex.get(key);
+            if (sectionsList == null){
+                sectionsList = new LinkedList();
+                sectionsList.add(temp);
+                cTermCourseIndex.put(key, sectionsList); 
+            } else {
+                sectionsList.add(temp);
+            }
+
             return temp;
         }
         return found;
     }
-//    /**
-//     * Private helper method to load sessions from a section parse, before loading sections.
-//     * The relational structure of the data in the web pages and thus corresponding parse does not match that of the more properly structured of the data in the "tables".
-//     * In the parse, session dates are an attribute of a HTMLMeetingPlaceTime.
-//     * @param pTerm
-//     * @param pParsedHTMLSections the LinkedList of parsed HTMLSection objects
-//     */
-//    private static void loadSessions(Term pTerm, LinkedList<HTMLSection> pParsedHTMLSections){
-//        
-//        //Loop through each section, testing the existence of Sessions in Sessions table, and collecting min start date and max end date for for Sessions that don't exist
-//        
-//        //Hash map to store the min start date and max end data associated with each session found.
-//        HashMap<String, UDate[]> newSessionsMap = new HashMap();
-//        
-//        for(HTMLSection hSec : pParsedHTMLSections){
-//
-//            //Check to see if the current HTMLSection's Session has already been added to the Sessions table.
-//            //If it already exists, nothing needs to be done.
-//            String sessName = hSec.session();
-//            Session sessFound = Sessions.get(pTerm, sessName);
-//
-//            if (sessFound == null){
-//                //Current session has not been been added to  the Sessions table.
-//                //Get the current section's min meeeting start date and max meeting end date
-//                UDate minStartOfCurrent = hSec.minMeetingStartDate();
-//                UDate maxEndOfCurrent = hSec.maxMeetingEndDate();
-//                //Only continueif the current sections has min and max dates.
-//                if(minStartOfCurrent != null){
-//                    //Check to see if the current HTMLSection's Session has been added to the map
-//                    UDate[] datesInMap = newSessionsMap.get(sessName);
-//                    if (datesInMap == null){
-//                        //Current session has not been added to the map
-//                        //Add current session to map with its minStart and maxEnd dates
-//                        datesInMap = new UDate[2];
-//                        datesInMap[0] = minStartOfCurrent;
-//                        datesInMap[1] = maxEndOfCurrent;
-//                        newSessionsMap.put(sessName, datesInMap);
-//                    } else{
-//                        //Current session has been added to the map
-//                        if (minStartOfCurrent.lessThan(datesInMap[0]))
-//                            datesInMap[0] = minStartOfCurrent;
-//                        if (datesInMap[1].lessThan(maxEndOfCurrent))
-//                            datesInMap[1] = maxEndOfCurrent;                        
-//                    }
-//                }
-//            } 
-//        }
-//        
-//        //Iterate through any sessions thate were added to the hashMap and add them to the Sessions table
-//        for (Map.Entry<String, UDate[]> entry : newSessionsMap.entrySet())
-//            Sessions.add(pTerm, entry.getKey(), entry.getValue()[0], entry.getValue()[1]);       
-//    }
+
     //************************************************************************************************
     //***************************************Querying*************************************************
     //************************************************************************************************
@@ -158,51 +133,58 @@ public final class Sections implements Table{
     /**
      * Returns from the Sections table, a list of all sections from the specified Term and Course, in the specified order. 
      * <br>
-     * <b>!!!NOT YET IMPLEMENTED!!!</b>
-     * <br>
-     * @param pTerm the Term of the sections to return
-     * @param pCourse the Course of the sections to return
-     * @param pOrder a Comparator of type Section that specifies how to order the returned list.
+     * @param pTerm the Term of the sections to return. Not null.
+     * @param pCourse the Course of the sections to return. Not null.
+     * @param pOrder a Comparator of type Section that specifies how to order the returned list. Not null.
      * @return a list of all sections from the specified whose Terms is pTerm and whose Course is pCourse, in the order specified by pOrder.
      */
     public static ArrayList<Section> getByCourse(Term pTerm, Course pCourse, Comparator<Section> pOrder){
-        throw new UnsupportedOperationException("Not supported yet.");
-//        ArrayList<Section> list = new ArrayList<>(cSections.values());
-//        Collections.sort(list, pOrder);
-//        return list;
+        String key = pTerm.pkey() + "~" + pCourse.pkey();
+        LinkedList<Section> sectionsLinkedList = cTermCourseIndex.get(key);
+        if (sectionsLinkedList == null){
+            return new ArrayList<>();
+        } else {
+            ArrayList<Section> returnList = new ArrayList<>(sectionsLinkedList);
+            Collections.sort(returnList, pOrder);
+            return returnList;
+        } 
     }
     /**
-     * From a List of Sections, returns a List of distinct Instructors of the Sections in the List, ordered by instructor.pkey().
-     * <br>
-     * <b>!!!NOT YET IMPLEMENTED!!!</b>
-     * <br>
-     * @param pSections the list of Sections from which to extract distinct Instructors
+     * From a List of Sections, returns a LinkedList of distinct Instructors of the Sections in the List, ordered by instructor.pkey().
+     * 
+     * @param pSections the list of non null Sections from which to extract distinct Instructors. Not null.
      * @return a List of distinct Instructors of the Sections in pSections, ordered by instructor.pkey().
      */
     public static ArrayList<Instructor> getDistinctInstructors(List<Section> pSections){
-        throw new UnsupportedOperationException("Not supported yet.");
+        TreeSet<Instructor> instructorsTree = new TreeSet(Instructors.PK_ASC);
+        for (Section s: pSections)
+            for(Instructor i : s.instructors())
+                instructorsTree.add(i);
+        return new ArrayList<>(instructorsTree);
     }
     /**
      * From a List of Sections, returns a List of distinct Sessions of the Sections in the List, ordered by session.pkey().
-     * <br>
-     * <b>!!!NOT YET IMPLEMENTED!!!</b>
-     * <br>
-     * @param pSections the list of Sections from which to extract distinct Sessions
+     * 
+     * @param pSections the list of non null Sections from which to extract distinct Sessions. Not null.
      * @return a List of distinct Sessions of the Sections in pSections, ordered by session.pkey().
      */
     public static ArrayList<Session> getDistinctSessions(List<Section> pSections){
-        throw new UnsupportedOperationException("Not supported yet.");
+        TreeSet<Session> sessionsTree = new TreeSet(Sessions.PK_ASC);
+        for (Section s: pSections)
+            sessionsTree.add(s.session());
+        return new ArrayList<>(sessionsTree);
     }
     /**
      * From a List of Sections, returns a List of distinct InstructionalMethods of the Sections in the List, ordered by ???
-     * <br>
-     * <b>!!!NOT YET IMPLEMENTED!!!</b>
-     * <br>
-     * @param pSections the list of Sections from which to extract distinct InstructionalMethods
-     * @return a List of distinct InstructionalMethods of the Sections in pSections, ordered by ???
+     * 
+     * @param pSections the list of non null Sections from which to extract distinct InstructionalMethods. Not null.
+     * @return a List of distinct InstructionalMethods of the Sections in pSections, ordered by the constant's definition in {@link uscheduler.global.InstructionalMethod InstructionalMethod}
      */
     public static ArrayList<InstructionalMethod> getDistinctMethods(List<Section> pSections){
-        throw new UnsupportedOperationException("Not supported yet.");
+        TreeSet<InstructionalMethod> imTree = new TreeSet();
+        for (Section s: pSections)
+            imTree.add(s.instructionalMethod());
+        return new ArrayList<>(imTree);
     }
     //************************************************************************************************
     //***************************************Comparators*********************************************
@@ -353,7 +335,7 @@ public final class Sections implements Table{
          * @param other the Section to which to compare this one for overlap
          * @return true if this Section overlaps with the Section specified by other. Returns false otherwise, or if other is null.
          */
-        boolean overlaps(Section other){
+        public boolean overlaps(Section other){
             if (other == null)
                 return false;
             if (this.cMeetings.isEmpty() || other.cMeetings.isEmpty())
@@ -413,6 +395,20 @@ public final class Sections implements Table{
             return new ArrayList<>(cInstructors);
         }  
                
+        /**
+         * @return a String consisting of the name of each Instructor in this Section, separated by a comma and space.
+         */
+        public String instructorsString(){
+            if(this.cInstructors.isEmpty())
+                return "";
+            
+            StringBuilder sb = new StringBuilder();
+            Iterator<Instructor> instructorsIT = this.cInstructors.iterator();
+            sb.append(instructorsIT.next().instructorName());
+            while(instructorsIT.hasNext())
+                sb.append(", ").append(instructorsIT.next().instructorName());
+            return sb.toString();
+        }
         
         @Override
         public String toString(){
@@ -424,7 +420,7 @@ public final class Sections implements Table{
         /**
          * @return the section's primary key value, which is session().pkey() + "~" + crn()
          */
-        private String pkey() {
+        public String pkey() {
             return this.cSession.pkey() + "~" + this.cCrn;
         }
     }
@@ -507,14 +503,16 @@ public final class Sections implements Table{
          * Returns true if this MeetingTime overlaps with the provided MeetingTime. 
          * Two MeetingTimes M1 and M2 overlap if (M1.startTime &lt; M2.endTime AND M1.endTime &gt; M2.startTime) 
          * AND (There exists any DayOfWeek D1 in M1 and DayOfWeek D2 in M2 such that D1 = D2). 
-     * <br>
-     * <b>!!!NOT YET IMPLEMENTED!!!</b>
-     * <br>
-         * @param other the MeetingTime to which to compare this one for overlap
+         * 
+         * @param other the MeetingTime to which to compare this one for overlap. Not null.
          * @return true if this MeetingTime overlaps with the MeetingTime specified by other.
          */
         boolean overlaps(MeetingTime other){
-            throw new UnsupportedOperationException("Not supported yet.");
+            if (this.cStartTime.lessThan(other.cEndTime) && this.cEndTime.greaterThan(other.cStartTime))
+                for(DayOfWeek thisDay : this.cDays)
+                    if (other.cDays.contains(thisDay))
+                        return true;
+            return false;
         }
                 
         /**
@@ -536,6 +534,20 @@ public final class Sections implements Table{
             ArrayList<DayOfWeek> daysAL = new ArrayList<>(cDays);
             Collections.sort(daysAL);
             return daysAL;
+        }  
+        /**
+         * @return a String consisting of the short display name of each DayOfWeek in this MeetingTime, separated by a comma and space.
+         */
+        public String daysString(){
+            if(this.cDays.isEmpty())
+                return "";
+            
+            StringBuilder sb = new StringBuilder();
+            Iterator<DayOfWeek> daysIT = this.cDays.iterator();
+            sb.append(daysIT.next().getDisplayName(TextStyle.SHORT, Locale.getDefault()));
+            while(daysIT.hasNext())
+                sb.append(", ").append(daysIT.next().getDisplayName(TextStyle.SHORT, Locale.getDefault()));
+            return sb.toString();
         }  
         /**
          * Returns true if this MeetingTime is equal to the provided object.
@@ -595,7 +607,7 @@ public final class Sections implements Table{
             return "MeetingTime[startTime=" + cStartTime + ", endTime=" + cEndTime + ", days=" + cDays + "]";
         }
         /**
-         * @return the section's primary key value, which is sectionAbbr()
+         * @return the MeetingTime's primary key value, which is cSection.pkey() + "~" + cStartTime + "~" + cEndTime
          */
         public String pkey() {
             return cSection.pkey() + "~" + cStartTime + "~" + cEndTime;

@@ -14,9 +14,9 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uscheduler.externaldata.HTMLFormatException;
 import uscheduler.externaldata.NoDataFoundException;
+import uscheduler.global.InstructionalMethod;
 import uscheduler.internaldata.*;
 import uscheduler.util.Importer;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,7 +45,7 @@ public class CourseHBox extends HBox{
     private ObservableList<Subjects.Subject> subjects = FXCollections.observableArrayList();
     private ObservableList<Sections.Section> sections = FXCollections.observableArrayList();
     private ObservableList<Sessions.Session> sessions = FXCollections.observableArrayList();
-    private ObservableList<String> formats = FXCollections.observableArrayList();
+    private ObservableList<InstructionalMethod> formats = FXCollections.observableArrayList();
     private ObservableList<Instructors.Instructor> instructors = FXCollections.observableArrayList();
     private final Tooltip tooltip = new Tooltip();
 
@@ -132,7 +132,7 @@ public class CourseHBox extends HBox{
         cmbSubject.setConverter(new StringConverter<Subjects.Subject>() {
             @Override
             public String toString(Subjects.Subject object) {
-                return object.subjectName();
+                return object.subjectAbbr() + " - " + object.subjectName();
             }
 
             @Override
@@ -182,35 +182,42 @@ public class CourseHBox extends HBox{
             return output;
         }else{ return null; }
     }
-    void setCourseIDAction(Terms.Term t){
-        txtCourseID.focusedProperty().addListener( (ob, oldValue, newValue) -> {
-            if(newValue) {
+    void setCourseIDAction(Terms.Term t) {
+        txtCourseID.focusedProperty().addListener((ob, oldValue, newValue) -> {
+            if (newValue) {
                 System.out.println("TextField is in focus");
-            }
-            else {
+            } else {
                 System.out.println("TextField is out of focus");
-                try{
+                try {
                     System.out.println(txtCourseID.getText());
-                    Importer.loadSections(t,cmbSubject.getValue(),txtCourseID.getText());
-                }catch (HTMLFormatException e){
+                    Importer.loadSections(t, cmbSubject.getValue(), txtCourseID.getText());
+                } catch (HTMLFormatException e) {
                     Popup.display(Alert.AlertType.ERROR, "HTMLFormatException", "It appears that KSU has changed their courses page." +
                             "There is a chance the data collected is corrupt, please contact uscheduler team for resolution.");
                     Platform.exit();
-                }catch (IOException e){
+                } catch (IOException e) {
                     Popup.display(Alert.AlertType.ERROR, "IOException", "Looks like you do not have Internet Connectivity." +
                             "  Please fix then relaunch the application");
                     Platform.exit();
-                }catch (NoDataFoundException e){
+                } catch (NoDataFoundException e) {
                     Popup.display(Alert.AlertType.WARNING, "NoDataFoundException", "It appears you entered an incorrect " +
                             "course ID.  Please try entering another.  If you are sure the number you entered is correct," +
                             " please try entering it again.");
                 }
-                setSections(Sections.getAll());
-                
+                clearLists();
+                Courses.Course crs = Courses.get(cmbSubject.getValue(), txtCourseID.getText());
+                ArrayList<Sections.Section> sections = Sections.getByCourse(t, crs, Sections.SEC_NUM_ASC);
+                setSections(sections);
+                setSessions(Sections.getDistinctSessions(sections));
+                formats.addAll(Sections.getDistinctMethods(sections));
+                listFormat.setItems(formats);
+                setInstructors(Sections.getDistinctInstructors(sections));
+
             }
         });
     }
     void setSections(ArrayList<Sections.Section> s){
+        //this.sections.clear();
         this.sections.addAll(s);
         listSectionNumber.setItems(sections);
         listSectionNumber.setCellFactory(new Callback<ListView<Sections.Section>, ListCell<Sections.Section>>() {
@@ -228,8 +235,10 @@ public class CourseHBox extends HBox{
                 return cell;
             }
         });
-    }/*
-    void setSessions(ArrayList<Sections.Section> s){
+
+    }
+    public void setSessions(ArrayList<Sessions.Session> s){
+        //this.sessions.clear();
         this.sessions.addAll(s);
         listSession.setItems(sessions);
         listSession.setCellFactory(new Callback<ListView<Sessions.Session>, ListCell<Sessions.Session>>() {
@@ -247,5 +256,24 @@ public class CourseHBox extends HBox{
                 return cell;
             }
         });
-    }*/
+    }
+    public void setInstructors(ArrayList<Instructors.Instructor> i) {
+        this.instructors.addAll(i);
+        listInstructor.setItems(instructors);
+        listInstructor.setCellFactory(new Callback<ListView<Instructors.Instructor>, ListCell<Instructors.Instructor>>() {
+            @Override
+            public ListCell<Instructors.Instructor> call(ListView<Instructors.Instructor> param) {
+                ListCell<Instructors.Instructor> cell = new ListCell<Instructors.Instructor>() {
+                    @Override
+                    protected void updateItem(Instructors.Instructor o, boolean bln) {
+                        super.updateItem(o, bln);
+                        if (o != null) {
+                            setText(o.instructorName());
+                        }
+                    }
+                };
+                return cell;
+            }
+        });
+    }
 }
