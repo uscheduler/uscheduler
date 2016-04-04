@@ -27,7 +27,7 @@ public class Main extends Application {
         Parent root = loader.load();
         Controller myController = loader.getController();
         primaryStage.setTitle("uScheduler - Kennesaw's SMART Student Scheduler");
-        primaryStage.setScene(new Scene(root, 1353, 730));
+        primaryStage.setScene(new Scene(root, 1355, 735));
         primaryStage.show();
     }
 

@@ -55,7 +55,6 @@ public class Controller implements Initializable {
         hBoxList.add(0, course);
         hBoxes.add(0, course);
         setDeleteAction(0);
-        setCourseIDAction(0);
         listCourse.setItems(hBoxList);
 
     }
@@ -117,6 +116,7 @@ public class Controller implements Initializable {
         top.setTerms(terms);
         top.cmbTerm.valueProperty().addListener(e -> {
             setSubjectsAndCampuses();
+            setCourseIDAction(0);
         });
     }
     private void setSubjectsAndCampuses(){

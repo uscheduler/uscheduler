@@ -7,104 +7,113 @@
 
 <AnchorPane prefHeight="730.0" prefWidth="1353.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="uscheduler.ui.Controller">
    <children>
-      <TabPane fx:id="tabPane" layoutX="10.0" layoutY="10.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="730.0" prefWidth="1110.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <tabs>
-            <Tab fx:id="inputTab" text="uscheduler">
-               <content>
-                  <GridPane fx:id="grid">
-                     <children>
-                        <HBox alignment="TOP_CENTER" spacing="10.0" GridPane.rowIndex="1">
-                           <children>
-                              <Button fx:id="buttonGenerateSchedule" mnemonicParsing="false" onAction="#handleGenerateSchedule" prefHeight="25.0" prefWidth="155.0" text="Generate Schedules" GridPane.rowIndex="1" />
-                              <Button fx:id="buttonAddCourse" mnemonicParsing="false" onAction="#handleAddButton" text="Add Another Course" GridPane.rowIndex="1" />
-                           </children>
-                           <GridPane.margin>
-                              <Insets />
-                           </GridPane.margin>
-                           <padding>
-                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                           </padding>
-                        </HBox>
-                        <AnchorPane prefHeight="526.0" prefWidth="1350.0" GridPane.rowIndex="2">
-                           <children>
-                              <ListView fx:id="listCourse" focusTraversable="false" layoutX="6.0" layoutY="4.0" prefHeight="518.0" prefWidth="1350.0" AnchorPane.bottomAnchor="4.0" AnchorPane.leftAnchor="6.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="4.0" />
-                              <HBox fx:id="hBoxCourseOne" alignment="CENTER" layoutX="12.0" layoutY="336.0" prefHeight="157.0" prefWidth="1070.0" spacing="10.0" visible="false">
+      <ScrollPane prefHeight="730.0" prefWidth="1353.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="730.0" prefWidth="1353.0">
+               <children>
+                  <TabPane fx:id="tabPane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="730.0" prefWidth="1353.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <tabs>
+                        <Tab fx:id="inputTab" text="uscheduler">
+                           <content>
+                              <GridPane fx:id="grid">
                                  <children>
-                                    <VBox fx:id="vBoxSubject" layoutX="14.0" layoutY="14.0" spacing="10.0">
+                                    <HBox alignment="TOP_CENTER" spacing="10.0" GridPane.rowIndex="1">
                                        <children>
-                                          <ComboBox fx:id="cmbSubject" layoutX="14.0" layoutY="14.0" prefWidth="150.0" promptText="Select Subject" />
-                                          <TextField fx:id="fieldCourseNum" layoutX="15.0" layoutY="45.0" promptText="Enter Course #" />
-                                          <ComboBox fx:id="cmbCRN" layoutX="14.0" layoutY="75.0" prefWidth="150.0" promptText="CRN" />
-                                          <ComboBox fx:id="cmbCourseAvaliability" layoutX="14.0" layoutY="111.0" prefWidth="150.0" promptText="Course Avaliablity" />
+                                          <Button fx:id="buttonGenerateSchedule" mnemonicParsing="false" onAction="#handleGenerateSchedule" prefHeight="25.0" prefWidth="155.0" text="Generate Schedules" GridPane.rowIndex="1" />
+                                          <Button fx:id="buttonAddCourse" mnemonicParsing="false" onAction="#handleAddButton" text="Add Another Course" GridPane.rowIndex="1" />
                                        </children>
+                                       <GridPane.margin>
+                                          <Insets />
+                                       </GridPane.margin>
                                        <padding>
                                           <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                        </padding>
-                                    </VBox>
-                                    <VBox fx:id="vBoxSession" layoutX="217.0" layoutY="18.0" spacing="5.0">
+                                    </HBox>
+                                    <AnchorPane prefHeight="526.0" prefWidth="1350.0" GridPane.rowIndex="2">
                                        <children>
-                                          <Label layoutX="257.0" layoutY="18.0" text="Desired Session">
-                                             <VBox.margin>
-                                                <Insets left="40.0" />
-                                             </VBox.margin>
-                                          </Label>
-                                          <ListView fx:id="listSession" layoutX="217.0" layoutY="45.0" prefHeight="110.0" prefWidth="163.0" />
+                                          <ListView fx:id="listCourse" focusTraversable="false" layoutX="6.0" layoutY="4.0" prefHeight="518.0" prefWidth="1350.0" AnchorPane.bottomAnchor="4.0" AnchorPane.leftAnchor="6.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="4.0" />
+                                          <HBox fx:id="hBoxCourseOne" alignment="CENTER" layoutX="12.0" layoutY="336.0" prefHeight="157.0" prefWidth="1070.0" spacing="10.0" visible="false">
+                                             <children>
+                                                <VBox fx:id="vBoxSubject" layoutX="14.0" layoutY="14.0" spacing="10.0">
+                                                   <children>
+                                                      <ComboBox fx:id="cmbSubject" layoutX="14.0" layoutY="14.0" prefWidth="150.0" promptText="Select Subject" />
+                                                      <TextField fx:id="fieldCourseNum" layoutX="15.0" layoutY="45.0" promptText="Enter Course #" />
+                                                      <ComboBox fx:id="cmbCRN" layoutX="14.0" layoutY="75.0" prefWidth="150.0" promptText="CRN" />
+                                                      <ComboBox fx:id="cmbCourseAvaliability" layoutX="14.0" layoutY="111.0" prefWidth="150.0" promptText="Course Avaliablity" />
+                                                   </children>
+                                                   <padding>
+                                                      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                   </padding>
+                                                </VBox>
+                                                <VBox fx:id="vBoxSession" layoutX="217.0" layoutY="18.0" spacing="5.0">
+                                                   <children>
+                                                      <Label layoutX="257.0" layoutY="18.0" text="Desired Session">
+                                                         <VBox.margin>
+                                                            <Insets left="40.0" />
+                                                         </VBox.margin>
+                                                      </Label>
+                                                      <ListView fx:id="listSession" layoutX="217.0" layoutY="45.0" prefHeight="110.0" prefWidth="163.0" />
+                                                   </children>
+                                                   <padding>
+                                                      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                   </padding>
+                                                </VBox>
+                                                <VBox fx:id="vBoxInType" layoutX="399.0" layoutY="18.0" spacing="5.0">
+                                                   <children>
+                                                      <Label layoutX="416.0" layoutY="18.0" text="Desired Instruction Type">
+                                                         <VBox.margin>
+                                                            <Insets left="18.0" />
+                                                         </VBox.margin>
+                                                      </Label>
+                                                      <ListView fx:id="listInstructionType" layoutX="399.0" layoutY="46.0" prefHeight="110.0" prefWidth="163.0" />
+                                                   </children>
+                                                   <padding>
+                                                      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                   </padding>
+                                                </VBox>
+                                                <VBox fx:id="vBoxInstructor" layoutX="582.0" layoutY="19.0" spacing="5.0">
+                                                   <children>
+                                                      <Label layoutX="599.0" layoutY="19.0" text="Desired Instructor">
+                                                         <VBox.margin>
+                                                            <Insets left="65.0" />
+                                                         </VBox.margin>
+                                                      </Label>
+                                                      <ListView fx:id="listInstructor" layoutX="582.0" layoutY="47.0" prefHeight="109.0" prefWidth="216.0" />
+                                                   </children>
+                                                   <padding>
+                                                      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                   </padding>
+                                                </VBox>
+                                                <Button fx:id="buttonRemoveCourse" mnemonicParsing="false" text="Remove" />
+                                             </children>
+                                             <padding>
+                                                <Insets top="15.0" />
+                                             </padding>
+                                          </HBox>
                                        </children>
-                                       <padding>
-                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                       </padding>
-                                    </VBox>
-                                    <VBox fx:id="vBoxInType" layoutX="399.0" layoutY="18.0" spacing="5.0">
-                                       <children>
-                                          <Label layoutX="416.0" layoutY="18.0" text="Desired Instruction Type">
-                                             <VBox.margin>
-                                                <Insets left="18.0" />
-                                             </VBox.margin>
-                                          </Label>
-                                          <ListView fx:id="listInstructionType" layoutX="399.0" layoutY="46.0" prefHeight="110.0" prefWidth="163.0" />
-                                       </children>
-                                       <padding>
-                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                       </padding>
-                                    </VBox>
-                                    <VBox fx:id="vBoxInstructor" layoutX="582.0" layoutY="19.0" spacing="5.0">
-                                       <children>
-                                          <Label layoutX="599.0" layoutY="19.0" text="Desired Instructor">
-                                             <VBox.margin>
-                                                <Insets left="65.0" />
-                                             </VBox.margin>
-                                          </Label>
-                                          <ListView fx:id="listInstructor" layoutX="582.0" layoutY="47.0" prefHeight="109.0" prefWidth="216.0" />
-                                       </children>
-                                       <padding>
-                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                       </padding>
-                                    </VBox>
-                                    <Button fx:id="buttonRemoveCourse" mnemonicParsing="false" text="Remove" />
+                                    </AnchorPane>
                                  </children>
-                                 <padding>
-                                    <Insets top="15.0" />
-                                 </padding>
-                              </HBox>
-                           </children>
-                        </AnchorPane>
-                     </children>
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="1353.0" minWidth="10.0" prefWidth="1353.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints maxHeight="281.0" minHeight="10.0" prefHeight="139.0" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="571.0" minHeight="10.0" prefHeight="38.0" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="571.0" minHeight="10.0" prefHeight="532.0" vgrow="SOMETIMES" />
-                     </rowConstraints>
-                  </GridPane>
-               </content>
-            </Tab>
-            <Tab fx:id="resultsTab" text="Results">
-               <content>
-                  <Label fx:id="displayText" prefHeight="504.0" prefWidth="975.0" text="Label" />
-               </content></Tab>
-         </tabs>
-      </TabPane>
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="1353.0" minWidth="10.0" prefWidth="1353.0" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints maxHeight="281.0" minHeight="10.0" prefHeight="139.0" vgrow="SOMETIMES" />
+                                    <RowConstraints maxHeight="571.0" minHeight="10.0" prefHeight="38.0" vgrow="SOMETIMES" />
+                                    <RowConstraints maxHeight="571.0" minHeight="10.0" prefHeight="532.0" vgrow="SOMETIMES" />
+                                 </rowConstraints>
+                              </GridPane>
+                           </content>
+                        </Tab>
+                        <Tab fx:id="resultsTab" text="Results">
+                           <content>
+                              <Label fx:id="displayText" prefHeight="504.0" prefWidth="975.0" text="Label" />
+                           </content>
+                        </Tab>
+                     </tabs>
+                  </TabPane>
+               </children>
+            </AnchorPane>
+        </content>
+      </ScrollPane>
    </children>
 </AnchorPane>

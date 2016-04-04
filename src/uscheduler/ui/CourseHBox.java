@@ -149,20 +149,6 @@ public class CourseHBox extends HBox{
         this.onRow = j;
         return this.onRow;
     }
-    void setLists(Collection passedSection, Collection passedSession, Collection passedFormat, Collection passedInstructor){
-        this.sections.setAll(passedSection);
-        this.sessions.setAll(passedSession);
-        this.formats.setAll(passedFormat);
-        this.instructors.setAll(passedInstructor);
-        this.listSectionNumber.setItems(this.sections);
-        this.listSession.setItems(this.sessions);
-        this.listFormat.setItems(this.formats);
-        this.listInstructor.setItems(this.instructors);
-        this.listSectionNumber.getSelectionModel().selectFirst();
-        this.listSession.getSelectionModel().selectFirst();
-        this.listFormat.getSelectionModel().selectFirst();
-        this.listInstructor.getSelectionModel().selectFirst();
-    }
     public void clearLists() {
         this.sections.clear();
         this.sessions.clear();
@@ -185,11 +171,10 @@ public class CourseHBox extends HBox{
     void setCourseIDAction(Terms.Term t) {
         txtCourseID.focusedProperty().addListener((ob, oldValue, newValue) -> {
             if (newValue) {
-                System.out.println("TextField is in focus");
+                //System.out.println("TextField is in focus");
             } else {
-                System.out.println("TextField is out of focus");
+                //System.out.println("TextField is out of focus");
                 try {
-                    System.out.println(txtCourseID.getText());
                     Importer.loadSections(t, cmbSubject.getValue(), txtCourseID.getText());
                 } catch (HTMLFormatException e) {
                     Popup.display(Alert.AlertType.ERROR, "HTMLFormatException", "It appears that KSU has changed their courses page." +
@@ -217,7 +202,6 @@ public class CourseHBox extends HBox{
         });
     }
     void setSections(ArrayList<Sections.Section> s){
-        //this.sections.clear();
         this.sections.addAll(s);
         listSectionNumber.setItems(sections);
         listSectionNumber.setCellFactory(new Callback<ListView<Sections.Section>, ListCell<Sections.Section>>() {
@@ -237,8 +221,7 @@ public class CourseHBox extends HBox{
         });
 
     }
-    public void setSessions(ArrayList<Sessions.Session> s){
-        //this.sessions.clear();
+    void setSessions(ArrayList<Sessions.Session> s){
         this.sessions.addAll(s);
         listSession.setItems(sessions);
         listSession.setCellFactory(new Callback<ListView<Sessions.Session>, ListCell<Sessions.Session>>() {
@@ -257,7 +240,7 @@ public class CourseHBox extends HBox{
             }
         });
     }
-    public void setInstructors(ArrayList<Instructors.Instructor> i) {
+    void setInstructors(ArrayList<Instructors.Instructor> i) {
         this.instructors.addAll(i);
         listInstructor.setItems(instructors);
         listInstructor.setCellFactory(new Callback<ListView<Instructors.Instructor>, ListCell<Instructors.Instructor>>() {
