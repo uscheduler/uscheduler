@@ -118,11 +118,21 @@ public class Controller implements Initializable {
             setSubjectsAndCampuses();
             setCourseIDAction(0);
         });
+        top.cmbTerm.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
+            if(oldValue != null){
+                if(Popup.userAccept("Warning", "By changing the term all your existing data will be lost, do you still wish to proceed?")){
+                    hBoxes.clear();
+                    hBoxList.clear();
+                }else{
+                    top.cmbTerm.setValue(oldValue);
+                }
+            }
+        });
     }
     private void setSubjectsAndCampuses(){
         campuses = Campuses.getAll(Campuses.PK_ASC);
         top.setCampuses(campuses);
-        subjects = (Subjects.getAll(Subjects.PK_ASC));
+        subjects = Subjects.getAll(Subjects.PK_ASC);
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setSubjects(subjects);
         }

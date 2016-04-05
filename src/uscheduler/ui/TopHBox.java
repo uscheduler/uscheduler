@@ -90,4 +90,7 @@ public class TopHBox extends HBox {
             }
         });
     }
+    void clearCampuses(){
+        campuses.clear();
+    }
 }
