@@ -80,16 +80,16 @@ public final class SchedulePrinter {
             Date now = new Date();
             String strDate = sdfDate.format(now);
             
-            schedulesOut.println(dividingLine);
+            schedulesOut.println(dividingLineChars);
             schedulesOut.println("***UScheduler Generated Schedules***");
             schedulesOut.println("Number of schedules printed: " + pSchedules.size());
             schedulesOut.println("Date printed: " + strDate);
-            schedulesOut.println(dividingLine);
+            schedulesOut.println(dividingLineChars);
             schedulesOut.println();
             
             for (Schedule sch : pSchedules) {
                 //Print top border of labels
-                schedulesOut.println(dividingLine);
+                schedulesOut.println(dividingLineChars);
                 
                 //Print labels
                 schedulesOut.print('|'); schedulesOut.format("%1$-" + SESSION_LEN + "s", "Session");
@@ -111,7 +111,7 @@ public final class SchedulePrinter {
                 
                 //Print bottom border of labels
                 schedulesOut.println();
-                schedulesOut.println(dividingLine);
+                schedulesOut.println(dividingLineChars);
                 
                 //Print Section Values
                 for(Section sec: sch.sections1()){
@@ -155,7 +155,7 @@ public final class SchedulePrinter {
                 }
                 
                 //Print bottom border of Schedule and then a new line
-                schedulesOut.println(dividingLine);
+                schedulesOut.println(dividingLineChars);
                 schedulesOut.println();
 
             }

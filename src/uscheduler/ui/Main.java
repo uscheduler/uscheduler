@@ -5,6 +5,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+
 import uscheduler.externaldata.HTMLFormatException;
 import uscheduler.externaldata.NoDataFoundException;
 import uscheduler.global.InstructionalMethod;
@@ -40,14 +42,14 @@ public static void main(String[] args) throws IOException, HTMLFormatException, 
 
         //Load Fall 2016 sections from files
 
-    Terms.Term t = Terms.get(201608);
+        Terms.Term t = Terms.get(201608);
         Importer.loadSectionsFromFile(t);
-//        //Load Summer 2016 sections from files
-//        t = Terms.get(201605);
-//        Importer.loadSectionsFromFile(t);
-//         //Load Spring 2016 sections from files
-//        t = Terms.get(201601);
-//        Importer.loadSectionsFromFile(t);
+//      //Load Summer 2016 sections from files
+//      t = Terms.get(201605);
+//      Importer.loadSectionsFromFile(t);
+//      //Load Spring 2016 sections from files
+//      t = Terms.get(201601);
+//      Importer.loadSectionsFromFile(t);
 
         //Build course slist to generate schedules
         Subjects.Subject subj;

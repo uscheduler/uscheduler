@@ -198,7 +198,6 @@ public class CourseHBox extends HBox{
                 formats.addAll(Sections.getDistinctMethods(sections));
                 listFormat.setItems(formats);
                 setInstructors(Sections.getDistinctInstructors(sections));
-
             }
         });
     }
