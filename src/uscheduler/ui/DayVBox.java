@@ -9,13 +9,16 @@ import javafx.scene.layout.VBox;
 import uscheduler.global.UTime;
 
 import java.text.ParseException;
+import java.time.DayOfWeek;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * Created by psout on 3/8/2016.
  */
 public class DayVBox extends VBox{
-    private String day;
+    private DayOfWeek day;
     private CheckBox checkDay = new CheckBox();
     private ComboBox<UTime> cmbTimeBefore = new ComboBox<>();
     private ComboBox<UTime> cmbTimeAfter = new ComboBox<>();
@@ -25,11 +28,11 @@ public class DayVBox extends VBox{
             "3:00 pm", "4:00 pm", "5:00 pm", "6:00 pm", "7:00 pm", "8:00 pm", "9:00 pm", "10:00 pm", "11:00 pm"};
     private final ObservableList<UTime> cmbTimes = FXCollections.observableArrayList();
 
-    DayVBox(String dayOfWeek, int startTime, int endTime){
+    DayVBox(DayOfWeek dayOfWeek, int startTime, int endTime){
         this.day = dayOfWeek;
         fillTimes(startTime, endTime);
         cmbTimes.addAll(times);
-        checkDay.setText(day);
+        checkDay.setText(day.getDisplayName(TextStyle.FULL, Locale.getDefault()));
         cmbTimeBefore.setItems(cmbTimes);
         cmbTimeAfter.setItems(cmbTimes);
         cmbTimeBefore.setValue(cmbTimes.get(0));
@@ -43,7 +46,7 @@ public class DayVBox extends VBox{
                     cmbTimeBefore.setDisable(false);
                 }
         });
-        if((dayOfWeek.compareTo("Saturday") == 0) || dayOfWeek.compareTo("Sunday") == 0){
+        if((dayOfWeek.compareTo(DayOfWeek.SATURDAY) == 0) || dayOfWeek.compareTo(DayOfWeek.SUNDAY) == 0){
             checkDay.setSelected(false);
             cmbTimeAfter.setDisable(true);
             cmbTimeBefore.setDisable(true);
@@ -67,11 +70,10 @@ public class DayVBox extends VBox{
             }
         }
     }
-
     ArrayList<String> getDayData(){
         ArrayList<String> dayInfo = new ArrayList<>();
         if(checkDay.isSelected()){
-            dayInfo.add(day);
+            //dayInfo.add(day);
             dayInfo.add(cmbTimeBefore.getValue().toString());
             dayInfo.add(cmbTimeAfter.getValue().toString());
         }else{ return null; }

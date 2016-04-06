@@ -11,6 +11,8 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uscheduler.internaldata.Campuses;
 import uscheduler.internaldata.Terms;
+
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 
 /**
@@ -32,13 +34,13 @@ public class TopHBox extends HBox {
         vCampus.getChildren().addAll(new Label("Desired Campuses"), listCampus);
         vLabels.getChildren().addAll(before, after);
         this.getChildren().addAll(cmbTerm, vCampus, vLabels);
-        days.add(new DayVBox("Monday", 8, 20));
-        days.add(new DayVBox("Tuesday", 8, 20));
-        days.add(new DayVBox("Wednesday", 8, 20));
-        days.add(new DayVBox("Thursday", 8, 20));
-        days.add(new DayVBox("Friday", 8, 20));
-        days.add(new DayVBox("Saturday", 8, 20));
-        days.add(new DayVBox("Sunday", 8, 20));
+        days.add(new DayVBox(DayOfWeek.MONDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.TUESDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.WEDNESDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.THURSDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.FRIDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.SATURDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.SUNDAY, 8, 20));
         this.getChildren().addAll(days);
         formatItems();
     }

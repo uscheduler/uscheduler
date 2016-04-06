@@ -10,8 +10,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
 import uscheduler.internaldata.Instructors.Instructor;
 import uscheduler.internaldata.Schedules;
 import uscheduler.internaldata.Schedules.Schedule;
@@ -19,7 +21,7 @@ import uscheduler.internaldata.Sections.MeetingTime;
 import uscheduler.internaldata.Sections.Section;
 
 /**
- * A singleton class consisting of a single static method that prints schedule to a file.
+ * A singleton class consisting of static methods that print schedules to a file.
  * @author Matt Bush
  */
 public final class SchedulePrinter {
@@ -36,121 +38,116 @@ public final class SchedulePrinter {
     private static final int DAYS_LEN = 33;
     private static final int INSTRUCTORS_LEN = 40;
     
+    private static final int ROW_LEN = 16 + SESSION_LEN + 2*DATE_LEN + IMETHOD_LEN + SUBJECT_LEN +
+                                         + COURSE_LEN + SECTION_NUM_LEN + CRN_LEN  + 2*SEATS_WAIT_LEN + CAMPUS_LEN +
+                                         + 2*TIME_LEN  + DAYS_LEN + INSTRUCTORS_LEN;
     
-    private static final int ROW_LEN = 1 + SESSION_LEN + 1 + 2*DATE_LEN + 1 + IMETHOD_LEN + 1 + SUBJECT_LEN + 1 
-                                         + COURSE_LEN + 1 + SECTION_NUM_LEN + 1 + CRN_LEN + 1 + 2*SEATS_WAIT_LEN + 1 + CAMPUS_LEN + 1
-                                         + 2*TIME_LEN + 1 + DAYS_LEN + 1 + INSTRUCTORS_LEN + 1;
-    
-    private static final int SECTION_LEN = 1 + SESSION_LEN + 1 + 2*DATE_LEN + 1 + IMETHOD_LEN + 1 + SUBJECT_LEN + 1 
-                                         + COURSE_LEN + 1 + SECTION_NUM_LEN + 1 + CRN_LEN + 1 + 2*SEATS_WAIT_LEN + 1 + CAMPUS_LEN;
+    private static final int SECTION_LEN = 11 + SESSION_LEN + 2*DATE_LEN + IMETHOD_LEN + SUBJECT_LEN +
+                                         + COURSE_LEN + SECTION_NUM_LEN + CRN_LEN  + 2*SEATS_WAIT_LEN + CAMPUS_LEN;
+
 
     /**
-     * Prints to a file, all Schedules s in the Schedules table such that s.isSaved() == true.
-     * <br>
-     * <b>!!!NOT YET IMPLEMENTED!!!</b>
-     * <br>
-     * @param pFile the file to print to. If no such file exists it will be created.
-     * @param pAppend  if true, then bytes will be written to the end of the file rather than the beginning
-     */
-    public static void print(File pFile, boolean pAppend) throws IOException {
+     * Prints to a file, all {@link uscheduler.internaldata.Schedules.Schedule Schedules s} in the Schedules table such that {@link uscheduler.internaldata.Schedules.Schedule#isSaved()  isSaved()}<code>==true</code>.
+     *
+     * @param pFile  a File object to write to
+     * @param pAppend    if <code>true</code>, then bytes will be written to the end of the file rather than the beginning
+     * @throws IOException  if the file exists but is a directory rather than a regular file, does not exist but cannot be created, or cannot be opened for any other reason
+     */  
+    public static void printSaved(File pFile, boolean pAppend) throws IOException {
+        print(Schedules.getAllSaved(), pFile, pAppend);
+    }
+    /**
+     * Prints to a file, all {@link uscheduler.internaldata.Schedules.Schedule Schedules s} in the Schedules table.
+     *
+     * @param pFile  a File object to write to
+     * @param pAppend  if <code>true</code>, then bytes will be written to the end of the file rather than the beginning
+     * @throws IOException  if the file exists but is a directory rather than a regular file, does not exist but cannot be created, or cannot be opened for any other reason
+     */  
+    public static void printAll(File pFile, boolean pAppend) throws IOException {
+        print(Schedules.getAll1(), pFile, pAppend);
+    }
+    private static void print(Collection<Schedule> pSchedules, File pFile, boolean pAppend) throws IOException {
+        
         try(PrintWriter schedulesOut = new PrintWriter(new BufferedWriter(new FileWriter(pFile, pAppend)))){
-            char[] borders = new char[ROW_LEN]; 
-            Arrays.fill(borders, '-');
-                
-            for (Schedule sch : Schedules.getAll()) {
+            
+            //an array of '-' characters or length ROW_LEN used to print horizontal dividing lines
+            char[] dividingLineChars = new char[ROW_LEN]; 
+            Arrays.fill(dividingLineChars, '-');
+            String dividingLine = Arrays.toString(dividingLineChars);
+            
+            //print report/print job header
+            SimpleDateFormat sdfDate = new SimpleDateFormat("MMM d, y (h:mm a)");
+            Date now = new Date();
+            String strDate = sdfDate.format(now);
+            
+            schedulesOut.println(dividingLine);
+            schedulesOut.println("***UScheduler Generated Schedules***");
+            schedulesOut.println("Number of schedules printed: " + pSchedules.size());
+            schedulesOut.println("Date printed: " + strDate);
+            schedulesOut.println(dividingLine);
+            schedulesOut.println();
+            
+            for (Schedule sch : pSchedules) {
                 //Print top border of labels
-                schedulesOut.println(borders);
+                schedulesOut.println(dividingLine);
                 
                 //Print labels
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + SESSION_LEN + "s", "Session");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + DATE_LEN + "s", "StartDate");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + DATE_LEN + "s", "EndDate");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + IMETHOD_LEN + "s", "Method");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + SUBJECT_LEN + "s", "Subj");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + COURSE_LEN + "s", "Crs");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + SECTION_NUM_LEN + "s", "Sec");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + CRN_LEN + "s", "CRN");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + SEATS_WAIT_LEN + "s", "Seats");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + SEATS_WAIT_LEN + "s", "Wait");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + CAMPUS_LEN + "s", "Campus");                
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + TIME_LEN + "s", "Start T");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + TIME_LEN + "s", "End T");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + DAYS_LEN + "s", "Days");
-                schedulesOut.print('|');
-                schedulesOut.format("%1$-" + INSTRUCTORS_LEN + "s", "Instructors");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + SESSION_LEN + "s", "Session");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + DATE_LEN + "s", "StartDate");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + DATE_LEN + "s", "EndDate");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + IMETHOD_LEN + "s", "Method");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + SUBJECT_LEN + "s", "Subj");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + COURSE_LEN + "s", "Crs");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + SECTION_NUM_LEN + "s", "Sec");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + CRN_LEN + "s", "CRN");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + SEATS_WAIT_LEN + "s", "Seats");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + SEATS_WAIT_LEN + "s", "Wait");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + CAMPUS_LEN + "s", "Campus");                
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + TIME_LEN + "s", "Start T");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + TIME_LEN + "s", "End T");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + DAYS_LEN + "s", "Days");
+                schedulesOut.print('|'); schedulesOut.format("%1$-" + INSTRUCTORS_LEN + "s", "Instructors");
                 schedulesOut.print('|');
                 
                 //Print bottom border of labels
                 schedulesOut.println();
-                schedulesOut.println(borders);
+                schedulesOut.println(dividingLine);
                 
                 //Print Section Values
-                for(Section sec: sch.sections()){
+                for(Section sec: sch.sections1()){
 
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + SESSION_LEN + "s", sec.session().sessionName());
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + DATE_LEN + "s", sec.session().startDate().toString());
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + DATE_LEN + "s", sec.session().endDate().toString());
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + IMETHOD_LEN + "s", sec.instructionalMethod().toString());
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + SUBJECT_LEN + "s", sec.course().subject().subjectAbbr());
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + COURSE_LEN + "s", sec.course().courseNum());
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + SECTION_NUM_LEN + "s", sec.sectionNumber());
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + CRN_LEN + "s", Integer.toString(sec.crn()));
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + SEATS_WAIT_LEN + "s", sec.seatsAvailable());
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + SEATS_WAIT_LEN + "s", sec.waitlistAvailable());
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + CAMPUS_LEN + "s", (sec.campus()!= null) ? sec.campus().campusName(): "");
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + SESSION_LEN + "s", sec.session().sessionName());
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + DATE_LEN + "s", sec.session().startDate().toString());
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + DATE_LEN + "s", sec.session().endDate().toString());
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + IMETHOD_LEN + "s", sec.instructionalMethod().toString());
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + SUBJECT_LEN + "s", sec.course().subject().subjectAbbr());
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + COURSE_LEN + "s", sec.course().courseNum());
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + SECTION_NUM_LEN + "s", sec.sectionNumber());
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + CRN_LEN + "s", Integer.toString(sec.crn()));
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + SEATS_WAIT_LEN + "s", sec.seatsAvailable());
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + SEATS_WAIT_LEN + "s", sec.waitlistAvailable());
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + CAMPUS_LEN + "s", (sec.campus()!= null) ? sec.campus().campusName(): "");
                     
                     //Print MeetingTime Values
-                    ArrayList<MeetingTime> meetingTimes = sec.meetings();
-                    ArrayList<Instructor> instructors = sec.instructors();
-                    int maxSize = Math.max(meetingTimes.size(), instructors.size());
+                    MeetingTime[] meetingTimes = sec.meetings();
+                    Instructor[] instructors = sec.instructors();
+                    int maxSize = Math.max(meetingTimes.length, instructors.length);
 
                     //print first MeetingTime and first Instructor on current / main line
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + TIME_LEN + "s", (!meetingTimes.isEmpty()) ? meetingTimes.get(0).startTime() : "");
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + TIME_LEN + "s",  (!meetingTimes.isEmpty()) ? meetingTimes.get(0).endTime(): "");
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + DAYS_LEN + "s", (!meetingTimes.isEmpty()) ? meetingTimes.get(0).daysString(): "");                  
-                    schedulesOut.print('|');
-                    schedulesOut.format("%1$-" + INSTRUCTORS_LEN + "s", (!instructors.isEmpty()) ? instructors.get(0).instructorName(): "");
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + TIME_LEN + "s", (meetingTimes.length > 0) ? meetingTimes[0].startTime() : "");
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + TIME_LEN + "s",  (meetingTimes.length > 0) ? meetingTimes[0].endTime(): "");
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + DAYS_LEN + "s", (meetingTimes.length > 0) ? meetingTimes[0].daysString(): "");                  
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + INSTRUCTORS_LEN + "s", (instructors.length > 0) ? instructors[0].instructorName(): "");
                     schedulesOut.print('|');
                         
                     //print each subsequent MeetingTime and Instructor on new line
                     schedulesOut.println();
                     for(int i = 1; i<maxSize;i++){
                         schedulesOut.format("%1$" + (SECTION_LEN +1) + "s", "|");
-                        schedulesOut.format("%1$-" + TIME_LEN + "s", (i < meetingTimes.size()) ? meetingTimes.get(i).startTime() : "");
-                        schedulesOut.print('|');
-                        schedulesOut.format("%1$-" + TIME_LEN + "s",  (i < meetingTimes.size()) ? meetingTimes.get(i).endTime(): "");
-                        schedulesOut.print('|');
-                        schedulesOut.format("%1$-" + DAYS_LEN + "s", (i < meetingTimes.size()) ? meetingTimes.get(i).daysString(): "");                  
-                        schedulesOut.print('|');
-                        schedulesOut.format("%1$-" + INSTRUCTORS_LEN + "s", (i < instructors.size()) ? instructors.get(i).instructorName(): "");
+                        schedulesOut.format("%1$-" + TIME_LEN + "s", (i < meetingTimes.length) ? meetingTimes[i].startTime() : "");
+                        schedulesOut.print('|'); schedulesOut.format("%1$-" + TIME_LEN + "s",  (i < meetingTimes.length) ? meetingTimes[i].endTime(): "");
+                        schedulesOut.print('|'); schedulesOut.format("%1$-" + DAYS_LEN + "s", (i < meetingTimes.length) ? meetingTimes[i].daysString(): "");                  
+                        schedulesOut.print('|'); schedulesOut.format("%1$-" + INSTRUCTORS_LEN + "s", (i < instructors.length) ? instructors[i].instructorName(): "");
                         schedulesOut.print('|');
                         schedulesOut.println();
                     }
@@ -158,7 +155,7 @@ public final class SchedulePrinter {
                 }
                 
                 //Print bottom border of Schedule and then a new line
-                schedulesOut.println(borders);
+                schedulesOut.println(dividingLine);
                 schedulesOut.println();
 
             }

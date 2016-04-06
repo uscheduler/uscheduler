@@ -53,7 +53,7 @@ public class UDate implements Comparable<UDate>{
      * <br><i>y</i> is a two or four digit year
      * <p>Examples of valid strings are: "Dec 12, 2016", "Dec 12, 16", "December 12, 16"
      * @param pDate the string representation of the date from which to construct the UDate.
-     * @throws ParseException 
+     * @throws ParseException if the specified date string cannot be parsed.
      */
     public UDate(String pDate) throws ParseException{
         Calendar cal = new GregorianCalendar();

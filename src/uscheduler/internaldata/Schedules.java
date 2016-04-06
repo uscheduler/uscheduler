@@ -6,10 +6,11 @@
 package uscheduler.internaldata;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import uscheduler.internaldata.Sections.Section;
 import uscheduler.internaldata.Terms.Term;
 
@@ -120,14 +121,39 @@ public final class Schedules implements Table{
     public static int size(){
         return cSchedules.size();
     }
-
     /**
-     * Method to return a list of all Schedules in the table in no specific order. 
+     * Returns a read-only {@link Collection} view of all {@link uscheduler.internaldata.Schedules.Schedule schedules} in the Schedules table.
+     * The collection is backed by the Schedules table, so changes to the table are
+     * reflected in the collection.  If the Schedules table is
+     * modified while an iteration over the collection is in progress, the results of the iteration are undefined. 
+     *
+     * <p>This method has less overhead than <tt>getAll2</tt> and should be used when an iterable read-only collection will accomplish what is needed.
      * 
-     * @return A list of all Schedules in the table in no specified order.
+     * @return a read-only {@link Collection} view of all {@link uscheduler.internaldata.Schedules.Schedule schedules} in the Schedules table
      */
-    public static ArrayList<Schedule> getAll(){
-        return new ArrayList<>(cSchedules.values());
+    public static Collection<Schedule> getAll1(){
+        return Collections.unmodifiableCollection(cSchedules.values());
+    }
+    /**
+     * Returns a new array containing all {@link uscheduler.internaldata.Schedules.Schedule schedules} in the Schedules table.
+     * <p>This method has more overhead than <tt>getAll1</tt> since all {@link uscheduler.internaldata.Schedules.Schedule schedules} in the table are copied to a new array.
+     * 
+     * @return a new array containing all {@link uscheduler.internaldata.Schedules.Schedule schedules} in the Schedules table.
+     */  
+    public static Schedule[] getAll2(){
+        return cSchedules.values().toArray(new Schedule[cSchedules.size()]);
+    }
+    /**
+     * Returns a new ArrayList containing all schedules in the Schedules table such that {@link uscheduler.internaldata.Schedules.Schedule#isSaved() isSaved()} == true.
+     * 
+     * @return a new ArrayList containing all schedules in the Schedules table such that {@link uscheduler.internaldata.Schedules.Schedule#isSaved() isSaved()} == true.
+     */  
+    public static ArrayList<Schedule> getAllSaved(){
+        ArrayList<Schedule> aList = new ArrayList<>();
+        for(Schedule s: cSchedules.values())
+            if(s.isSaved())
+                aList.add(s);
+        return aList;
     }
     //************************************************************************************************
     //***************************************Comparators*********************************************
@@ -245,12 +271,26 @@ public final class Schedules implements Table{
          */
         public Term term(){return cTerm;}
         /**
-         * @return a list of this Schedule's Sections, in no particular order
+         * Returns a read-only {@link Collection} view of this schedule's {@link uscheduler.internaldata.Sections.Section sections}.
+         * The collection is backed by this schedule's container for sections, so changes to the container are reflected in the collection.  
+         * If this schedule's container for sections is modified while an iteration over the collection is in progress, the results of the iteration are undefined. 
+         *
+         * <p>This method has less overhead than <tt>sections2</tt> and should be used when an iterable read-only collection will accomplish what is needed.
+         * 
+         * @return a read-only {@link Collection} view of this schedule's {@link uscheduler.internaldata.Sections.Section sections}.
          */
-        public ArrayList<Section> sections(){
-            return new ArrayList<>(cSections);
-        } 
-        
+        public  Collection<Section> sections1(){
+            return Collections.unmodifiableCollection(cSections);
+        }
+        /**
+         * Returns a new array containing this schedule's {@link uscheduler.internaldata.Sections.Section sections}.
+         * <p>This method has more overhead than <tt>sections1</tt> since all {@link uscheduler.internaldata.Sections.Section sections} are copied to a new array.
+         * 
+         * @return a new array containing this schedule's {@link uscheduler.internaldata.Sections.Section sections}.
+         */  
+        public Section[] sections2(){
+             return cSections.toArray(new Section[cSections.size()]);
+        }
         /**
          * @return true if this Schedule is saved
          */

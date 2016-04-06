@@ -20,6 +20,7 @@ import uscheduler.util.Importer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by aa8439 on 3/7/2016.
@@ -191,7 +192,7 @@ public class CourseHBox extends HBox{
                 }
                 clearLists();
                 Courses.Course crs = Courses.get(cmbSubject.getValue(), txtCourseID.getText());
-                ArrayList<Sections.Section> sections = Sections.getByCourse(t, crs, Sections.SEC_NUM_ASC);
+                List<Sections.Section> sections = Sections.getByCourseReadOnly(t, crs, Sections.SEC_NUM_ASC);
                 setSections(sections);
                 setSessions(Sections.getDistinctSessions(sections));
                 formats.addAll(Sections.getDistinctMethods(sections));
@@ -201,7 +202,7 @@ public class CourseHBox extends HBox{
             }
         });
     }
-    void setSections(ArrayList<Sections.Section> s){
+    void setSections(List<Sections.Section> s){
         this.sections.addAll(s);
         listSectionNumber.setItems(sections);
         listSectionNumber.setCellFactory(new Callback<ListView<Sections.Section>, ListCell<Sections.Section>>() {
@@ -221,7 +222,7 @@ public class CourseHBox extends HBox{
         });
 
     }
-    void setSessions(ArrayList<Sessions.Session> s){
+    void setSessions(List<Sessions.Session> s){
         this.sessions.addAll(s);
         listSession.setItems(sessions);
         listSession.setCellFactory(new Callback<ListView<Sessions.Session>, ListCell<Sessions.Session>>() {
@@ -240,7 +241,7 @@ public class CourseHBox extends HBox{
             }
         });
     }
-    void setInstructors(ArrayList<Instructors.Instructor> i) {
+    void setInstructors(List<Instructors.Instructor> i) {
         this.instructors.addAll(i);
         listInstructor.setItems(instructors);
         listInstructor.setCellFactory(new Callback<ListView<Instructors.Instructor>, ListCell<Instructors.Instructor>>() {
