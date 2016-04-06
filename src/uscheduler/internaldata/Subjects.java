@@ -42,7 +42,7 @@ public final class Subjects implements Table{
      * 
      * @param pSubjAbbr the abbreviation of the Subject to add.
      * @param pSubjName the name of the Subject to add.
-     * @throws IllegalArgumentException if pSubjAbbr or pSubjName is null.
+     * @throws IllegalArgumentException if pSubjAbbr or pSubjName is null or if pSubjAbbr doesn't contain at least one non-white-space character.
      * @return the newly added Subject if no such Subject already existed, otherwise returns the already existing Subject.
      */
     public static Subject add(String pSubjAbbr, String pSubjName){
@@ -131,7 +131,10 @@ public final class Subjects implements Table{
                 throw new IllegalArgumentException("A subject's abbreviation cannot be null.");
             if (pSubjName == null)
                 throw new IllegalArgumentException("A subject's name cannot be null.");
-            cSubjectAbbr = pSubjAbbr;
+            String trimmedSubjAbbr = pSubjAbbr.trim();
+            if (trimmedSubjAbbr.isEmpty())
+                throw new IllegalArgumentException("A subject's abbreviation must contain at least one non-white-space character.");      
+            cSubjectAbbr = trimmedSubjAbbr;
             cSubjectName = pSubjName;
         }
         /**

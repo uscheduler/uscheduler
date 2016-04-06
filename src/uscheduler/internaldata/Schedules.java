@@ -20,18 +20,6 @@ import uscheduler.internaldata.Terms.Term;
  * 
  */
 public final class Schedules implements Table{
-    //************************************************************************************************
-    //***************************************Data Modification*****************************************
-    //************************************************************************************************
-    //************************************************************************************************
-    //***************************************Querying*************************************************
-    //************************************************************************************************
-    //************************************************************************************************
-    //***************************************Comparators*********************************************
-    //************************************************************************************************  
-    //************************************************************************************************
-    //***************************************Record Class*********************************************
-    //************************************************************************************************  
     
     /**
      * The HashMap to store Schedule objects using the schedule's set of Sections as the key into the map. 
@@ -77,13 +65,13 @@ public final class Schedules implements Table{
      * or null if the constructed Schedule is invalid.
      * @throws IllegalArgumentException see above description
      */  
-    public static Schedule addSchedule(List<Section> pSections){
+    public static Schedule addSchedule(Section... pSections){
         if (pSections == null)
             throw new IllegalArgumentException("Null argumen pSections");
-        if (pSections.isEmpty())
+        if (pSections.length == 0)
             throw new IllegalArgumentException("A Schedule must consist of at least one Section");
         
-        Schedule newSchedule = new Schedule(pSections.get(0).session().term());
+        Schedule newSchedule = new Schedule(pSections[0].session().term());
         for (Section sec : pSections){
             if (newSchedule.addSection(sec) == false)
                 return null;

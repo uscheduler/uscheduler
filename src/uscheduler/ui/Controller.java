@@ -19,7 +19,6 @@ import uscheduler.internaldata.Campuses;
 import uscheduler.internaldata.Subjects;
 import uscheduler.internaldata.Terms;
 import uscheduler.util.Importer;
-
 import java.util.ArrayList;
 
 public class Controller implements Initializable {
@@ -44,9 +43,9 @@ public class Controller implements Initializable {
     private TopHBox top = new TopHBox();
     private ObservableList<HBox> hBoxList = FXCollections.observableArrayList();
     private ArrayList<CourseHBox> hBoxes = new ArrayList<>();
-    private ArrayList<Terms.Term> terms = new ArrayList<>();
-    private ArrayList<Campuses.Campus> campuses = new ArrayList<>();
-    private ArrayList<Subjects.Subject> subjects = new ArrayList<>();
+    private ArrayList<Terms.Term> terms;
+    private ArrayList<Campuses.Campus> campuses;
+    private ArrayList<Subjects.Subject> subjects;
 
     @Override
     public void initialize(URL location, ResourceBundle resources){
@@ -56,7 +55,6 @@ public class Controller implements Initializable {
         hBoxList.add(0, course);
         hBoxes.add(0, course);
         setDeleteAction(0);
-        setCourseIDAction(0);
         listCourse.setItems(hBoxList);
 
     }
@@ -114,16 +112,27 @@ public class Controller implements Initializable {
                     "KSU's website may be experiencing difficulty, please try again later.");
             Platform.exit();
         }
-        terms.addAll(Terms.getAll(Terms.PK_DESC));
+        terms = Terms.getAll(Terms.PK_DESC);
         top.setTerms(terms);
         top.cmbTerm.valueProperty().addListener(e -> {
             setSubjectsAndCampuses();
+            setCourseIDAction(0);
+        });
+        top.cmbTerm.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
+            if(oldValue != null){
+                if(Popup.userAccept("Warning", "By changing the term all your existing data will be lost, do you still wish to proceed?")){
+                    hBoxes.clear();
+                    hBoxList.clear();
+                }else{
+                    top.cmbTerm.setValue(oldValue);
+                }
+            }
         });
     }
     private void setSubjectsAndCampuses(){
-        campuses.addAll(Campuses.getAll(Campuses.PK_ASC));
+        campuses = Campuses.getAll(Campuses.PK_ASC);
         top.setCampuses(campuses);
-        subjects.addAll(Subjects.getAll(Subjects.PK_ASC));
+        subjects = Subjects.getAll(Subjects.PK_ASC);
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setSubjects(subjects);
         }

@@ -415,7 +415,7 @@ public final class SectionsPageParser {
                 //Split instructors on ", " unless it is followed by "II" or "Sr" or "Jr"
                 //Then add each instructor
                 for (String instructor: instructors.split(", (?!(?:(II)|(Sr)|(Jr)))")){ 
-                    meeting.cInstructors.add(instructor);
+                    meeting.cInstructors.add(instructor.trim());
                 }
             }
             
