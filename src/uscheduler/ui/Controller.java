@@ -22,6 +22,15 @@ import uscheduler.util.Importer;
 import java.util.ArrayList;
 
 public class Controller implements Initializable {
+    /*
+    When changes are made to dayvbox, specifically checked unchecked hboxes need to be iterated through to update the
+    change.
+
+    Likewise, term and campuses will need to be updated through each hbox that has been created.
+    term being null, is valid, BUT should never be.
+    campuses if all are selected than empty list is okay
+
+     */
 
     @FXML
     TabPane tabPane;
@@ -56,7 +65,7 @@ public class Controller implements Initializable {
         hBoxes.add(0, course);
         setDeleteAction(0);
         listCourse.setItems(hBoxList);
-
+        handleDayCheckBox();
     }
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
@@ -75,6 +84,7 @@ public class Controller implements Initializable {
     }
     private void setDeleteAction(int j){
         hBoxes.get(j).buttonRemove.setOnAction(e -> {
+                hBoxes.get(j).safeRemove();
                 hBoxList.remove(hBoxes.get(j).getOnRow());
                 hBoxes.remove(hBoxes.get(j).getOnRow());
                 updateHBoxPosition();
@@ -92,7 +102,24 @@ public class Controller implements Initializable {
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setOnRow(j);
             setDeleteAction(j);
-            System.out.println(hBoxes.get(j).getOnRow());
+            //System.out.println(hBoxes.get(j).getOnRow());
+        }
+    }
+    private void handleDayCheckBox(){
+        for(DayVBox d: top.days){
+            d.checkDay.setOnAction(e -> {
+                if(!d.checkDay.isSelected()){
+                    d.disableDay(true);
+                    for(CourseHBox c: hBoxes){
+                        c.addDayTimeArg(d.dta);
+                    }
+                }else{
+                    d.disableDay(false);
+                    for(CourseHBox c: hBoxes) {
+                        c.removeDayTimeArg(d.dta);
+                    }
+                }
+            });
         }
     }
     private void getTerms(){
@@ -117,6 +144,9 @@ public class Controller implements Initializable {
         top.cmbTerm.valueProperty().addListener(e -> {
             setSubjectsAndCampuses();
             setCourseIDAction(0);
+            for(CourseHBox c: hBoxes) {
+                c.setTerm(top.cmbTerm.getValue());
+            }
         });
         top.cmbTerm.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
             if(oldValue != null){
@@ -132,6 +162,7 @@ public class Controller implements Initializable {
     private void setSubjectsAndCampuses(){
         campuses = Campuses.getAll(Campuses.PK_ASC);
         top.setCampuses(campuses);
+
         subjects = Subjects.getAll(Subjects.PK_ASC);
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setSubjects(subjects);

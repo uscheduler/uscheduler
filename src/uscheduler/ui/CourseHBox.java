@@ -17,6 +17,9 @@ import uscheduler.externaldata.NoDataFoundException;
 import uscheduler.global.InstructionalMethod;
 import uscheduler.internaldata.*;
 import uscheduler.util.Importer;
+import uscheduler.util.SectionsQuery;
+import uscheduler.util.SectionsQueryObserver;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +28,17 @@ import java.util.List;
 /**
  * Created by aa8439 on 3/7/2016.
  */
-public class CourseHBox extends HBox{
+public class CourseHBox extends HBox implements SectionsQueryObserver{
+    /*
+    Need to implement the following:
+
+    +addCampus(c : Campus)
+    +removeCampus(c : Campus)
+    + MULTIPLE listeners for user selections(LISTVIEW, COMBOBOX, TEXTFIELD) to update SQ object
+
+    empty objects means no restrictions
+
+     */
     private int onRow = 0;
     private boolean disabled = false;
     ComboBox<Subjects.Subject> cmbSubject = new ComboBox<>();
@@ -49,14 +62,22 @@ public class CourseHBox extends HBox{
     private ObservableList<InstructionalMethod> formats = FXCollections.observableArrayList();
     private ObservableList<Instructors.Instructor> instructors = FXCollections.observableArrayList();
     private final Tooltip tooltip = new Tooltip();
+    private Label remainingSections = new Label();
+    private SectionsQuery sectionsQuery = new SectionsQuery();
+
 
 
     /**
      *
      */
     CourseHBox(){
-        vSubjCourse.getChildren().addAll(cmbSubject,txtCourseID,cmbCourseAvail);
-        vSession.getChildren().addAll(new Label("Desired Session"),listSession);
+        vSubjCourse.getChildren().addAll(cmbSubject,txtCourseID,cmbCourseAvail,remainingSections);
+        resultsChanged(sectionsQuery);
+        listSession.getSelectionModel().selectAll();
+        String test;
+        test = (listSession.getSelectionModel().getSelectedItems().isEmpty()) ? "(All)": listSession.getSelectionModel().getSelectedItems().size() + " Selected";
+
+        vSession.getChildren().addAll(new Label("Desired Session " + test),listSession);
         vSection.getChildren().addAll(new Label("Desired Section"),listSectionNumber);
         vFormat.getChildren().addAll(new Label("Desired Format"),listFormat);
         vInstructor.getChildren().addAll(new Label("Desired Instructor(s)"),listInstructor);
@@ -66,6 +87,7 @@ public class CourseHBox extends HBox{
         fillStaticFields();
         this.getChildren().addAll(vSubjCourse,vSection,vSession,vFormat,vInstructor,vButtons);
         this.setSpacing(5);
+        sectionsQuery.addObserver(this);
     }
     private void formatItems(){
         cmbSubject.setPromptText("Select Subject");
@@ -124,7 +146,6 @@ public class CourseHBox extends HBox{
                     buttonDisable.setText("Disable");
                     disabled = false;
                 }
-
         });
     }
     void setSubjects(ArrayList<Subjects.Subject> s){
@@ -198,6 +219,9 @@ public class CourseHBox extends HBox{
                 formats.addAll(Sections.getDistinctMethods(sections));
                 listFormat.setItems(formats);
                 setInstructors(Sections.getDistinctInstructors(sections));
+                sectionsQuery.setCourse(crs);
+                sectionsQuery.setAvailability(SectionsQuery.AvailabilityArg.ANY);
+                resultsChanged(sectionsQuery);
             }
         });
     }
@@ -219,7 +243,9 @@ public class CourseHBox extends HBox{
                 return cell;
             }
         });
-
+        listSectionNumber.setOnMouseClicked(e -> {
+            System.out.println(listSectionNumber.getSelectionModel().getSelectedItems());
+        });
     }
     void setSessions(List<Sessions.Session> s){
         this.sessions.addAll(s);
@@ -258,5 +284,23 @@ public class CourseHBox extends HBox{
                 return cell;
             }
         });
+    }
+    void addDayTimeArg(SectionsQuery.DayTimeArg dta){
+        sectionsQuery.addDayTimeArg(dta);
+    }
+    void removeDayTimeArg(SectionsQuery.DayTimeArg dta){
+        sectionsQuery.removeDayTimeArg(dta);
+    }
+    void setTerm(Terms.Term t){
+        System.out.println("called setTerm");
+        sectionsQuery.setTerm(t);
+    }
+    void safeRemove(){
+        sectionsQuery.close();
+    }
+    @Override
+    public void resultsChanged(SectionsQuery sq) {
+        System.out.println(sectionsQuery.resultsSize());
+        remainingSections.setText(sectionsQuery.resultsSize() + " Sections available");
     }
 }

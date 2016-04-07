@@ -20,7 +20,7 @@ import java.util.ArrayList;
  */
 public class TopHBox extends HBox {
     ComboBox<Terms.Term> cmbTerm = new ComboBox<>();
-    private ListView<Campuses.Campus> listCampus = new ListView<>();
+    ListView<Campuses.Campus> listCampus = new ListView<>();
     private VBox vCampus = new VBox(5);
     private VBox vLabels = new VBox();
     private Label before = new Label("No Classes Before:");
@@ -28,7 +28,7 @@ public class TopHBox extends HBox {
     private final Tooltip tooltip = new Tooltip();
     private ObservableList<Terms.Term> terms = FXCollections.observableArrayList();
     private ObservableList<Campuses.Campus> campuses = FXCollections.observableArrayList();
-    private ArrayList<DayVBox> days = new ArrayList<>();
+    ArrayList<DayVBox> days = new ArrayList<>();
 
     TopHBox() {
         vCampus.getChildren().addAll(new Label("Desired Campuses"), listCampus);
@@ -43,6 +43,7 @@ public class TopHBox extends HBox {
         days.add(new DayVBox(DayOfWeek.SUNDAY, 8, 20));
         this.getChildren().addAll(days);
         formatItems();
+
     }
     private void formatItems(){
         tooltip.setText("Press control and left mouse click\n to select multiple entries.");
