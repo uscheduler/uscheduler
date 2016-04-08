@@ -404,7 +404,7 @@ public final class SectionsQuery implements DayTimeArgObserver{
     }
     public void addSection(Section pSection){
        if(this.cSections.add(pSection)){
-            if(this.cSections.size()==1)
+            if(this.cSections.size()>=1) //NOTE:: Peter made adjustment here, does this make sense?  Because it fixed my issue.
                //more restrictive (Was 0, now 1)
                if(this.restrictOnSections())
                    this.notifyObservers();
@@ -412,6 +412,7 @@ public final class SectionsQuery implements DayTimeArgObserver{
                //less restrictive
                 this.lessRestriction();
        }
+        //System.out.println("cResults are : " + cResults);
     }
     public void removeSection(Section pSection){
        if(this.cSections.remove(pSection)){
@@ -424,9 +425,18 @@ public final class SectionsQuery implements DayTimeArgObserver{
                    this.notifyObservers();
        }
     }
+    public void removeAllSections(){
+        if(this.cSections.isEmpty())
+            this.lessRestriction();
+        else{
+            this.cSections.clear();
+            this.lessRestriction();
+            this.notifyObservers();
+        }
+    }
     public void addSession(Session pSession){
        if(this.cSessions.add(pSession)){
-            if(this.cSessions.size()==1)
+            if(this.cSessions.size()>=1)//NOTE:: Peter made adjustment here, does this make sense?  Because it fixed my issue.
                //more restrictive (Was 0, now 1)
                if(this.restrictOnSessions())
                    this.notifyObservers();
@@ -445,6 +455,15 @@ public final class SectionsQuery implements DayTimeArgObserver{
                if(this.restrictOnSessions())
                    this.notifyObservers();
        }
+    }
+    public void removeAllSessions(){
+        if(this.cSessions.isEmpty())
+            this.lessRestriction();
+        else{
+            this.cSessions.clear();
+            this.lessRestriction();
+            this.notifyObservers();
+        }
     }
     public void addInstructionalMethod(InstructionalMethod pInstructionalMethod){
        if(this.cInstructionalMethods.add(pInstructionalMethod)){
@@ -468,9 +487,19 @@ public final class SectionsQuery implements DayTimeArgObserver{
                    this.notifyObservers();
        }
     }
+    public void removeAllInstructionalMethods(){
+        if(this.instructionalMethods().isEmpty())
+            this.lessRestriction();
+        else{
+            this.cInstructionalMethods.clear();
+            this.lessRestriction();
+            this.notifyObservers();
+        }
+    }
+
     public void addInstructor(Instructor pInstructor){
        if(this.cInstructors.add(pInstructor)){
-            if(this.cInstructors.size()==1)
+            if(this.cInstructors.size()>=1)//NOTE:: Peter made adjustment here, does this make sense?  Because it fixed my issue.
                //more restrictive (Was 0, now 1)
                if(this.restrictOnInstructors())
                    this.notifyObservers();
@@ -489,6 +518,15 @@ public final class SectionsQuery implements DayTimeArgObserver{
                if(this.restrictOnInstructors())
                    this.notifyObservers();
        }
+    }
+    public void removeAllInstructors(){
+        if(this.cInstructors.isEmpty())
+            this.lessRestriction();
+        else{
+            this.cInstructors.clear();
+            this.lessRestriction();
+            this.notifyObservers();
+        }
     }
 
     
