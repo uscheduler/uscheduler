@@ -59,14 +59,14 @@ public class Controller implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources){
         grid.getChildren().add(0, top);
-        getTerms();
         CourseHBox course = new CourseHBox();
         hBoxList.add(0, course);
         hBoxes.add(0, course);
         setDeleteAction(0);
         listCourse.setItems(hBoxList);
         handleDayCheckBoxAction();
-        setInitialDayTimeArg();
+        getTerms();
+        setInitialDayTimeArg(0);
     }
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
@@ -81,7 +81,8 @@ public class Controller implements Initializable {
             setCourseIDAction(0);
             setSubjectOnAdd(0);
             listCourse.setItems(hBoxList);
-            setInitialDayTimeArg();
+            setTermInHBox(0);
+            setInitialDayTimeArg(0);
         }
     }
     private void setDeleteAction(int j){
@@ -169,13 +170,9 @@ public class Controller implements Initializable {
             hBoxes.get(j).setSubjects(subjects);
         }
     }
-    private void setInitialDayTimeArg(){
-        System.out.println(hBoxes.size());
-        for(DayVBox d: top.days){
-            for(int i = 0; i < hBoxes.size(); i++) {
-                hBoxes.get(i).removeDayTimeArg(d.dta);
-                hBoxes.get(i).addDayTimeArg(d.dta);
-            }
+    private void setInitialDayTimeArg(int j){
+        for(DayVBox d : top.days){
+            hBoxes.get(j).addDayTimeArg(d.dta);
         }
     }
     private void setTermInHBox(int j){

@@ -178,25 +178,11 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
         this.formats.clear();
         this.instructors.clear();
     }
-    ArrayList<String> getCourseData(){
-        ArrayList<String> output = new ArrayList<>();
-        if(!disabled){
-            //output.add(cmbSubject.getValue());
-            output.add(cmbCourseAvail.getValue());
-            output.add(txtCourseID.getText());
-            output.add(listSectionNumber.getSelectionModel().getSelectedItems().toString());
-            output.add(listSession.getSelectionModel().getSelectedItems().toString());
-            output.add(listFormat.getSelectionModel().getSelectedItems().toString());
-            output.add(listInstructor.getSelectionModel().getSelectedItems().toString());
-            return output;
-        }else{ return null; }
-    }
     void setCourseIDAction(Terms.Term t) {
         txtCourseID.focusedProperty().addListener((ob, oldValue, newValue) -> {
             if (newValue) {
                 //System.out.println("TextField is in focus");
             } else {
-                //System.out.println("TextField is out of focus");
                 try {
                     Importer.loadSections(t, cmbSubject.getValue(), txtCourseID.getText());
                 } catch (HTMLFormatException e) {
@@ -221,8 +207,7 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                 listFormat.setItems(formats);
                 setInstructors(Sections.getDistinctInstructors(sections));
                 sectionsQuery.setCourse(crs);
-                //sectionsQuery.set
-                sectionsQuery.setAvailability(SectionsQuery.AvailabilityArg.ANY);
+                System.out.println(sectionsQuery.results());
                 resultsChanged(sectionsQuery);
             }
         });
@@ -246,7 +231,16 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
             }
         });
         listSectionNumber.setOnMouseClicked(e -> {
-            System.out.println(listSectionNumber.getSelectionModel().getSelectedItems());
+            if(listSectionNumber.getSelectionModel().getSelectedItems() != null){
+                List<Sections.Section> temp = listSectionNumber.getSelectionModel().getSelectedItems();
+                if(temp.size() != sectionsQuery.sections().size()) {
+                    for (Sections.Section section : temp) {
+                        sectionsQuery.addSection(section);
+                    }
+                }else{
+                    //sectionsQuery.removeSection();
+                }
+            }
         });
     }
     void setSessions(List<Sessions.Session> s){
@@ -265,6 +259,18 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                     }
                 };
                 return cell;
+            }
+        });
+        listSession.setOnMouseClicked(e -> {
+            if(listSession.getSelectionModel().getSelectedItems() != null){
+                List<Sessions.Session> temp = listSession.getSelectionModel().getSelectedItems();
+                if(temp.size() != sectionsQuery.sessions().size()) {
+                    for (Sessions.Session session : temp) {
+                        sectionsQuery.addSession(session);
+                    }
+                }else{
+                    //sectionsQuery.removeSection();
+                }
             }
         });
     }
@@ -286,6 +292,18 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                 return cell;
             }
         });
+        listInstructor.setOnMouseClicked(e -> {
+            if(listInstructor.getSelectionModel().getSelectedItems() != null){
+                List<Instructors.Instructor> temp = listInstructor.getSelectionModel().getSelectedItems();
+                if(temp.size() != sectionsQuery.instructors().size()) {
+                    for (Instructors.Instructor instructor : temp) {
+                        sectionsQuery.addInstructor(instructor);
+                    }
+                }else{
+                    //sectionsQuery.removeSection();
+                }
+            }
+        });
     }
     void addDayTimeArg(SectionsQuery.DayTimeArg dta){
         sectionsQuery.addDayTimeArg(dta);
@@ -294,7 +312,6 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
         sectionsQuery.removeDayTimeArg(dta);
     }
     void setTerm(Terms.Term t){
-        System.out.println("called setTerm");
         sectionsQuery.setTerm(t);
     }
     void safeRemove(){
@@ -305,7 +322,19 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
         //System.out.println("I am hbox : " + onRow);
         //if(sectionsQuery.dayTimeArgs() == null) System.out.println(sectionsQuery.dayTimeArgs().toString());
         //System.out.println(sectionsQuery.resultsSize());
-        System.out.println("Friday : " + onRow + " : " + sectionsQuery.getDayTimeArg(DayOfWeek.FRIDAY));
         remainingSections.setText(sectionsQuery.resultsSize() + " Sections available");
+    }
+    ArrayList<String> getCourseData(){
+        ArrayList<String> output = new ArrayList<>();
+        if(!disabled){
+            //output.add(cmbSubject.getValue());
+            output.add(cmbCourseAvail.getValue());
+            output.add(txtCourseID.getText());
+            output.add(listSectionNumber.getSelectionModel().getSelectedItems().toString());
+            output.add(listSession.getSelectionModel().getSelectedItems().toString());
+            output.add(listFormat.getSelectionModel().getSelectedItems().toString());
+            output.add(listInstructor.getSelectionModel().getSelectedItems().toString());
+            return output;
+        }else{ return null; }
     }
 }

@@ -46,8 +46,9 @@ public class TopHBox extends HBox {
 
     }
     private void formatItems(){
-        tooltip.setText("Press control and left mouse click\n to select multiple entries.");
+        tooltip.setText("Press control and left mouse click\n to select multiple entries.\n Or hit control + a to select all.");
         cmbTerm.setPromptText("Select Term");
+        cmbTerm.setMaxWidth(210);
         listCampus.setMaxHeight(75);
         listCampus.setMaxWidth(175);
         listCampus.setTooltip(tooltip);
