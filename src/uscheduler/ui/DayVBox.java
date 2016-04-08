@@ -64,9 +64,6 @@ public class DayVBox extends VBox implements DayTimeArgObserver{
         checkDay.setAlignment(Pos.CENTER);
         dta = new SectionsQuery.DayTimeArg(day);
         dta.addObserver(this);
-        System.out.println(dta.maxEnd());
-        //dta.setMaxEnd(null);
-        //dta.setMinStart(null);
     }
     private void fillTimes(int startTime, int endTime) {
         times.add(null);

@@ -21,6 +21,7 @@ import uscheduler.util.SectionsQuery;
 import uscheduler.util.SectionsQueryObserver;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -220,6 +221,7 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                 listFormat.setItems(formats);
                 setInstructors(Sections.getDistinctInstructors(sections));
                 sectionsQuery.setCourse(crs);
+                //sectionsQuery.set
                 sectionsQuery.setAvailability(SectionsQuery.AvailabilityArg.ANY);
                 resultsChanged(sectionsQuery);
             }
@@ -300,7 +302,10 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
     }
     @Override
     public void resultsChanged(SectionsQuery sq) {
-        System.out.println(sectionsQuery.resultsSize());
+        //System.out.println("I am hbox : " + onRow);
+        //if(sectionsQuery.dayTimeArgs() == null) System.out.println(sectionsQuery.dayTimeArgs().toString());
+        //System.out.println(sectionsQuery.resultsSize());
+        System.out.println("Friday : " + onRow + " : " + sectionsQuery.getDayTimeArg(DayOfWeek.FRIDAY));
         remainingSections.setText(sectionsQuery.resultsSize() + " Sections available");
     }
 }

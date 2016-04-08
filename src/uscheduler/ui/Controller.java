@@ -65,7 +65,8 @@ public class Controller implements Initializable {
         hBoxes.add(0, course);
         setDeleteAction(0);
         listCourse.setItems(hBoxList);
-        handleDayCheckBox();
+        handleDayCheckBoxAction();
+        setInitialDayTimeArg();
     }
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
@@ -79,7 +80,8 @@ public class Controller implements Initializable {
             setDeleteAction(0);
             setCourseIDAction(0);
             setSubjectOnAdd(0);
-            listCourse.setItems((hBoxList));
+            listCourse.setItems(hBoxList);
+            setInitialDayTimeArg();
         }
     }
     private void setDeleteAction(int j){
@@ -102,21 +104,20 @@ public class Controller implements Initializable {
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setOnRow(j);
             setDeleteAction(j);
-            //System.out.println(hBoxes.get(j).getOnRow());
         }
     }
-    private void handleDayCheckBox(){
+    private void handleDayCheckBoxAction(){
         for(DayVBox d: top.days){
             d.checkDay.setOnAction(e -> {
                 if(!d.checkDay.isSelected()){
                     d.disableDay(true);
                     for(CourseHBox c: hBoxes){
-                        c.addDayTimeArg(d.dta);
+                        c.removeDayTimeArg(d.dta);
                     }
                 }else{
                     d.disableDay(false);
                     for(CourseHBox c: hBoxes) {
-                        c.removeDayTimeArg(d.dta);
+                        c.addDayTimeArg(d.dta);
                     }
                 }
             });
@@ -168,6 +169,29 @@ public class Controller implements Initializable {
             hBoxes.get(j).setSubjects(subjects);
         }
     }
+    private void setInitialDayTimeArg(){
+        System.out.println(hBoxes.size());
+        for(DayVBox d: top.days){
+            for(int i = 0; i < hBoxes.size(); i++) {
+                hBoxes.get(i).removeDayTimeArg(d.dta);
+                hBoxes.get(i).addDayTimeArg(d.dta);
+            }
+        }
+    }
+    private void setTermInHBox(int j){
+        hBoxes.get(0).setTerm(top.cmbTerm.getValue());
+    }
+
+
+
+
+
+
+
+
+
+
+
     public void handleGenerateSchedule(ActionEvent e) {
         tabPane.getSelectionModel().select(resultsTab);
         String output = "";
