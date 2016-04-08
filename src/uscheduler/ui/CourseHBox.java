@@ -233,7 +233,7 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
         listSectionNumber.setOnMouseClicked(e -> {
             if(listSectionNumber.getSelectionModel().getSelectedItems() != null){
                 List<Sections.Section> temp = listSectionNumber.getSelectionModel().getSelectedItems();
-                if(temp.size() != sectionsQuery.sections().size()) {
+                if(temp.size() != s.size()) {
                     for (Sections.Section section : temp) {
                         sectionsQuery.addSection(section);
                     }
@@ -264,7 +264,7 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
         listSession.setOnMouseClicked(e -> {
             if(listSession.getSelectionModel().getSelectedItems() != null){
                 List<Sessions.Session> temp = listSession.getSelectionModel().getSelectedItems();
-                if(temp.size() != sectionsQuery.sessions().size()) {
+                if(temp.size() != s.size()) {
                     for (Sessions.Session session : temp) {
                         sectionsQuery.addSession(session);
                     }
@@ -295,7 +295,7 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
         listInstructor.setOnMouseClicked(e -> {
             if(listInstructor.getSelectionModel().getSelectedItems() != null){
                 List<Instructors.Instructor> temp = listInstructor.getSelectionModel().getSelectedItems();
-                if(temp.size() != sectionsQuery.instructors().size()) {
+                if(temp.size() != i.size()) {
                     for (Instructors.Instructor instructor : temp) {
                         sectionsQuery.addInstructor(instructor);
                     }
