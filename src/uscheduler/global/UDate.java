@@ -98,6 +98,19 @@ public class UDate implements Comparable<UDate>{
         
         return this.cDayOfMonth < pOther.cDayOfMonth;   
     }  
+    /**
+     * Returns true if this UDate is less than or equal some other UDate.
+     * @param pOther the other date in which to test if this UDate is less than or equal to. Not null.
+     * @return true if this UDate is less than or equal pOther
+     */  
+    public boolean lessThanOrEqual(UDate pOther){
+        if (this.cYear != pOther.cYear)
+            return this.cYear <= pOther.cYear;
+        if (this.cMonth != pOther.cMonth)
+            return this.cMonth <= pOther.cMonth;
+        
+        return this.cDayOfMonth <= pOther.cDayOfMonth;   
+    }  
     
     /**
      * Returns true if this UDate is greater than some other UDate.
@@ -132,7 +145,7 @@ public class UDate implements Comparable<UDate>{
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof UDate)) {
             return false;
         }
         final UDate other = (UDate) obj;

@@ -18,8 +18,6 @@ public class Popup {
     public static boolean userAccept(String title, String message){
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message);
         alert.setTitle(title);
-        //ButtonType yes = new ButtonType("Yes");
-        //alert.getButtonTypes().setAll(yes, ButtonType.CANCEL);
         Optional<ButtonType> result = alert.showAndWait();
         if(alert.getResult() == ButtonType.OK)
             return true;

@@ -5,6 +5,7 @@
  */
 package uscheduler.util;
 
+import java.util.HashSet;
 import uscheduler.internaldata.Schedules;
 import uscheduler.internaldata.Sections.Section;
 
@@ -27,6 +28,31 @@ public final class ScheduleGenerator {
      */
     public static final int SCHEDULE_MAX = 10000;
 
+    private static final HashSet<ScheduleGeneratorObserver> cObservers = new HashSet();
+    
+    
+    /**
+     * Adds a {@link uscheduler.util.ScheduleGeneratorObserver ScheduleGeneratorObserver} to the <code>ScheduleGenerator</code>. 
+     * A <code>ScheduleGeneratorObserver</code> object <code>sgo[i]</code> added to the <code>ScheduleGenerator</code> 
+     * will be notified after an execution of <code>{@link #generate(uscheduler.internaldata.Sections.Section[][]) generate}</code>.
+     * @param pObserver the <code>ScheduleGeneratorObserver</code> to be added to the <code>ScheduleGenerator</code>. Not null.
+     */    
+    public static void addObserver(ScheduleGeneratorObserver pObserver){
+        if(pObserver==null)
+            throw new IllegalArgumentException("Null pObserver argument");
+        cObservers.add(pObserver);
+    }
+    /**
+     * Removes a {@link uscheduler.util.ScheduleGeneratorObserver ScheduleGeneratorObserver} from the <code>ScheduleGenerator</code>. 
+     * Removing a <code>ScheduleGeneratorObserver</code> from the <code>ScheduleGenerator</code> 
+     * means the <code>ScheduleGeneratorObserver</code> will no longer be notified 
+     * when <code>{@link #generate(uscheduler.internaldata.Sections.Section[][]) generate}</code> executes.
+     * @param pObserver the <code>ScheduleGeneratorObserver</code> to be removed from the <code>ScheduleGenerator</code>. 
+     */
+    public static void removeObserver(ScheduleGeneratorObserver pObserver){
+        cObservers.remove(pObserver);
+    }
+    
     /**
      * Need to describe...
      * 
@@ -39,19 +65,41 @@ public final class ScheduleGenerator {
             throw new IllegalArgumentException("pSections must contain at least 2 Arrays of Sections");
         
         Schedules.deleteUnsaved();
-        
+        int count;
         switch (pSections.length) {
-            case 2:  return generate2(pSections);
-            case 3:  return generate3(pSections);
-            case 4:  return generate4(pSections);
-            case 5:  return generate5(pSections);
-            case 6:  return generate6(pSections);
-            case 7:  return generate7(pSections);
+            case 2:  
+                count = generate2(pSections);
+                notifyObservers();
+                break;
+            case 3:  
+                count = generate3(pSections);
+                notifyObservers();
+                break;              
+            case 4:  
+                count = generate4(pSections);
+                notifyObservers();
+                break;  
+            case 5:  
+                count = generate5(pSections);
+                notifyObservers();
+                break;             
+            case 6:  
+                count = generate6(pSections);
+                notifyObservers();
+                break;               
+            case 7:  
+                count = generate7(pSections);
+                notifyObservers();
+                break;               
             default: throw new IllegalArgumentException("Too many lists of sections.");
         }
+        return count;
     }
     
-
+    private static void notifyObservers(){
+        for(ScheduleGeneratorObserver sgo : cObservers)
+            sgo.schedulesGenerated();
+    }
     private static int generate2(Section[][] pSections) {
         int schedulesSizeBefore = Schedules.size();
         for (Section sec0 : pSections[0]) 

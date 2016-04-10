@@ -17,8 +17,8 @@ import java.util.Date;
 import uscheduler.internaldata.Instructors.Instructor;
 import uscheduler.internaldata.Schedules;
 import uscheduler.internaldata.Schedules.Schedule;
-import uscheduler.internaldata.Sections.MeetingTime;
 import uscheduler.internaldata.Sections.Section;
+import uscheduler.internaldata.Sections.Section.MeetingTime;
 
 /**
  * A singleton class consisting of static methods that print schedules to a file.
@@ -73,7 +73,6 @@ public final class SchedulePrinter {
             //an array of '-' characters or length ROW_LEN used to print horizontal dividing lines
             char[] dividingLineChars = new char[ROW_LEN]; 
             Arrays.fill(dividingLineChars, '-');
-            String dividingLine = Arrays.toString(dividingLineChars);
             
             //print report/print job header
             SimpleDateFormat sdfDate = new SimpleDateFormat("MMM d, y (h:mm a)");
@@ -129,8 +128,8 @@ public final class SchedulePrinter {
                     schedulesOut.print('|'); schedulesOut.format("%1$-" + CAMPUS_LEN + "s", (sec.campus()!= null) ? sec.campus().campusName(): "");
                     
                     //Print MeetingTime Values
-                    MeetingTime[] meetingTimes = sec.meetings();
-                    Instructor[] instructors = sec.instructors();
+                    MeetingTime[] meetingTimes = sec.meetings2();
+                    Instructor[] instructors = sec.instructors2();
                     int maxSize = Math.max(meetingTimes.length, instructors.length);
 
                     //print first MeetingTime and first Instructor on current / main line
@@ -153,6 +152,10 @@ public final class SchedulePrinter {
                     }
                     
                 }
+                //Print a new line, then est # days and est # minutes, each on a new line
+                schedulesOut.println();
+                schedulesOut.println("Est. # days at school: " + (int)sch.estDaysAtSchool());
+                schedulesOut.println("Est. # min. at school: " + (int)sch.estMinutesAtSchool());
                 
                 //Print bottom border of Schedule and then a new line
                 schedulesOut.println(dividingLineChars);

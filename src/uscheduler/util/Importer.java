@@ -10,6 +10,7 @@ import uscheduler.global.UDate;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import uscheduler.externaldata.HTMLFormatException;
@@ -23,6 +24,7 @@ import uscheduler.internaldata.Instructors;
 import uscheduler.internaldata.Instructors.Instructor;
 import uscheduler.internaldata.Sections;
 import uscheduler.internaldata.Sections.Section;
+import uscheduler.internaldata.Sections.UnattachedMeetingTime;
 import uscheduler.internaldata.Sessions;
 import uscheduler.internaldata.Subjects;
 import uscheduler.internaldata.Terms;
@@ -81,21 +83,23 @@ public final class Importer {
     //************************************************************************************************
      /**
      * Extracts sections, instructors, sessions, and courses from A local file and imports into the corresponding tables.
-     * <p>This method is for testing and debugging so to avoid frequent requests from KSU Sections Page. 
+     * 
+     * @deprecated <p><b>NOTE:</b>This method is for testing and debugging purposes only and will not be used in the final product.
      * 
      * @param pTerm the Term  of the Sections to parse and load.
      * @throws IOException if the file could not be opened and read
      * @throws uscheduler.externaldata.HTMLFormatException if the file does not have the HTML structure expected of the Sections Page.
      * @throws uscheduler.externaldata.NoDataFoundException If the file represents a Sections page that was generated with a term number in which KSU returned a page with no results.  
      */
+    @Deprecated
     public static void loadSectionsFromFile(Terms.Term pTerm) throws HTMLFormatException, IOException, NoDataFoundException{
         File f;
         switch (pTerm.termNum()) {
-            case 201601:  f = new File("C:\\Users\\psout\\Downloads\\src\\src\\uscheduler2\\2016_Spring_All.txt");
+            case 201601:  f = new File("C:\\MyApps\\myJava\\UScheduler2\\src\\uscheduler2\\2016_Spring_All.txt");
                      break;
-            case 201605:  f = new File("C:\\Users\\psout\\Downloads\\src\\src\\uscheduler2\\2016_Summer_All.txt");
+            case 201605:  f = new File("C:\\MyApps\\myJava\\UScheduler2\\src\\uscheduler2\\2016_Summer_All.txt");
                      break;
-            case 201608:  f = new File("C:\\Users\\psout\\Downloads\\src\\src\\uscheduler2\\2016_Fall_All.txt");
+            case 201608:  f = new File("C:\\MyApps\\myJava\\UScheduler2\\src\\uscheduler2\\2016_Fall_All.txt");
                      break;
             default: f = null;
                      break;
@@ -108,7 +112,7 @@ public final class Importer {
      * <p>More specifically, extracts sections from KSU via a call to 
      * {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int, String, String) SectionsPageParser.parseFromWeb(pTerm.termNum(), pSubject.subjectAbbr(), pCourseNum)}.
      * Then extracts from the parsed sections, the Sections, Instructors, Sessions, and Courses, then imports into the corresponding tables via calls to:
-     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.global.InstructionalMethod, int, int)  Sections.add}, 
+     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.global.InstructionalMethod, int, int, java.util.Set, java.util.Collection)   Sections.add}, 
      * {@link uscheduler.internaldata.Instructors#add(java.lang.String)  Instructors.add},
      * {@link uscheduler.internaldata.Sessions#add(uscheduler.internaldata.Terms.Term, java.lang.String, uscheduler.global.UDate, uscheduler.global.UDate)  Sessions.add}, and
      * {@link uscheduler.internaldata.Courses#add(uscheduler.internaldata.Subjects.Subject, java.lang.String)   Courses.add}
@@ -129,10 +133,11 @@ public final class Importer {
      * <p>More specifically, extracts sections from KSU via a call to 
      * {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int, String) SectionsPageParser.parseFromWeb(pTerm.termNum(), pSubject.subjectAbbr())}.
      * Then extracts from the parsed sections, the Sections, Instructors, Sessions, and Courses, then imports into the corresponding tables via calls to:
-     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.util.InstructionalMethod, int, int)  Sections.add}, 
+     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.global.InstructionalMethod, int, int, java.util.Set, java.util.Collection)  Sections.add}, 
      * {@link uscheduler.internaldata.Instructors#add(java.lang.String)   Instructors.add},
      * {@link uscheduler.internaldata.Sessions#add(uscheduler.internaldata.Terms.Term, java.lang.String, uscheduler.global.UDate, uscheduler.global.UDate)  Sessions.add}, and
      * {@link uscheduler.internaldata.Courses#add(uscheduler.internaldata.Subjects.Subject, java.lang.String)   Courses.add}
+     * 
      * 
      * @param pTerm the Term  to use in the call to {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int, String) SectionsPageParser.parseFromWeb(pTerm.termNum(), pSubject.subjectAbbr())}.
      * @param pSubject the Subject to use in the call to {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int, String) SectionsPageParser.parseFromWeb(pTerm.termNum(), pSubject.subjectAbbr())}.
@@ -150,11 +155,13 @@ public final class Importer {
      * <p>More specifically, extracts sections from KSU via a call to 
      * {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int) SectionsPageParser.parseFromWeb(pTerm.termNum())}.
      * Then extracts from the parsed sections, the Sections, Instructors, Sessions, and Courses, then imports into the corresponding tables via calls to:
-     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.global.InstructionalMethod, int, int) Sections.add}, 
+     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.global.InstructionalMethod, int, int, java.util.Set, java.util.Collection) Sections.add}, 
      * {@link uscheduler.internaldata.Instructors#add(java.lang.String) Instructors.add()},
      * {@link uscheduler.internaldata.Sessions#add(uscheduler.internaldata.Terms.Term, java.lang.String, uscheduler.global.UDate, uscheduler.global.UDate)   Sessions.add},
      * and
      * {@link uscheduler.internaldata.Courses#add(uscheduler.internaldata.Subjects.Subject, java.lang.String) Courses.add}
+     * 
+     *@deprecated <p><b>NOTE:</b>This method is for testing and debugging purposes only and will not be used in the final product.
      * 
      * @param pTerm the Term  to use in the call to {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int) SectionsPageParser.parseFromWeb(pTerm.termNum())}.
 
@@ -162,6 +169,7 @@ public final class Importer {
      * @throws uscheduler.externaldata.HTMLFormatException See: {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int) SectionsPageParser.parseFromWeb} for details.
      * @throws uscheduler.externaldata.NoDataFoundException See: {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int) SectionsPageParser.parseFromWeb} for details.
      */
+    @Deprecated 
     public static void loadSections(Terms.Term pTerm) throws HTMLFormatException, IOException, NoDataFoundException{
         LinkedList<SectionsPageParser.HTMLSection> parsedSections = SectionsPageParser.parseFromWeb(pTerm.termNum());
         loadSections(pTerm, parsedSections);
@@ -173,7 +181,8 @@ public final class Importer {
      * @param pParsedSections the parsed sections from which to load data into the corresponding "tables" 
      */
     private static void loadSections(Terms.Term pTerm, LinkedList<SectionsPageParser.HTMLSection> pParsedSections){
-        
+        HashSet<Instructor> setInstructors = new HashSet<>();
+        LinkedList<UnattachedMeetingTime> llUnattachedMTs = new LinkedList();
         /**
          * Call loadSessions with the list of parsed Importer. 
          * loadSessions() will iterate through each parsed section, extracting the min start date and max end date of each of each section 
@@ -214,6 +223,24 @@ public final class Importer {
                     Subjects.Subject internalSubject = Subjects.get(currentHTMLSection.subjectAbbr());
                     if (internalSubject != null){
                         /**
+                         * Iterate though each HTMLMeetingPlaceTime of the current HTMLSection
+                         * 1) Add all of its instructors to the Instructors table and a temp set that will be provided to the Sections.add() method
+                         * 2) Add each instructor to the internal Section's Instructor list.
+                         * 3) Create the corresponding UnattachedMeetingTime if and only if the  HTMLMeetingPlaceTime has non null times and at least one DayOfWeek.
+                         * Then add the UnattachedMeetingTime to a temp collection that will provided to the Sections.add() method.
+                         */
+                        setInstructors.clear();
+                        llUnattachedMTs.clear();
+                        for(SectionsPageParser.HTMLMeetingPlaceTime currMPT : currentHTMLSection.meetings()){
+                            for(String currInstructorName : currMPT.instructors())
+                                setInstructors.add(Instructors.add(currInstructorName));     
+
+                            if(currMPT.startTime() != null && currMPT.endTime() != null && !currMPT.daysOfWeek().isEmpty()){
+                               llUnattachedMTs.add(new UnattachedMeetingTime(currMPT.startTime(), currMPT.endTime(), currMPT.daysOfWeek()));
+                            }   
+                        } 
+                        
+                        /**
                          * Extract the course from the parsed section and ensure it's corresponding Course is in the courses table, getting a reference to it in the process. 
                          */
                         Courses.Course internalCourse= Courses.add(internalSubject, currentHTMLSection.courseNum());
@@ -234,24 +261,10 @@ public final class Importer {
                                                         currentHTMLSection.sectionNum(), 
                                                         firstMPT.instructionalMethod(), 
                                                         currentHTMLSection.seatsAvailable(), 
-                                                        currentHTMLSection.waitlistAvailability());
-                        /**
-                         * Iterate though each HTMLMeetingPlaceTime of the current HTMLSection
-                         * 1) Add all of its instructors to to the Instructors table
-                         * 2) Add each instructor to the internal Section's Instructor list.
-                         * 3) Create the corresponding MeetingTime if and only if the  HTMLMeetingPlaceTime has non null times and at least one DayOfWeek
-                         */
+                                                        currentHTMLSection.waitlistAvailability(),
+                                                        setInstructors,
+                                                        llUnattachedMTs);
 
-                        for(SectionsPageParser.HTMLMeetingPlaceTime currMPT : currentHTMLSection.meetings()){
-                            for(String currInstructorName : currMPT.instructors()){
-                                Instructor internalInstructor = Instructors.add(currInstructorName);
-                                newSection.addInstructor(internalInstructor);     
-                            }
-
-                            if(currMPT.startTime() != null && currMPT.endTime() != null && !currMPT.daysOfWeek().isEmpty()){
-                               newSection.addMeetingTime(currMPT.startTime(), currMPT.endTime(), currMPT.daysOfWeek());
-                            }   
-                        } 
                     }
                 }
             }

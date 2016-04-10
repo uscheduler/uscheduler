@@ -16,9 +16,12 @@ import javafx.scene.layout.HBox;
 import uscheduler.externaldata.HTMLFormatException;
 import uscheduler.externaldata.NoDataFoundException;
 import uscheduler.internaldata.Campuses;
+import uscheduler.internaldata.Sections;
 import uscheduler.internaldata.Subjects;
 import uscheduler.internaldata.Terms;
 import uscheduler.util.Importer;
+import uscheduler.util.ScheduleGenerator;
+
 import java.util.ArrayList;
 
 public class Controller implements Initializable {
@@ -55,6 +58,8 @@ public class Controller implements Initializable {
     private ArrayList<Terms.Term> terms;
     private ArrayList<Campuses.Campus> campuses;
     private ArrayList<Subjects.Subject> subjects;
+    private int POTENTIAL_MAX = 500;
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources){
@@ -70,7 +75,7 @@ public class Controller implements Initializable {
     }
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
-            Popup.display(Alert.AlertType.WARNING, "Warning", "You have exceeded the total number of classes that" +
+            Popup.display(Alert.AlertType.WARNING, "uScheduler", "You have exceeded the total number of classes that" +
                     " can be taken in a semester");
         }else{
             CourseHBox course = new CourseHBox();
@@ -129,15 +134,15 @@ public class Controller implements Initializable {
             Importer.loadTerms();
             Importer.loadSubjectsAndCampuses();
         }catch (HTMLFormatException e){
-            Popup.display(Alert.AlertType.ERROR, "HTMLFormatException", "It appears that KSU has changed their courses page." +
+            Popup.display(Alert.AlertType.ERROR, "uScheduler - HTMLFormatException", "It appears that KSU has changed their courses page." +
                     "There is a chance the data collected is corrupt, please contact uscheduler team for resolution.");
             Platform.exit();
         }catch (IOException e){
-            Popup.display(Alert.AlertType.ERROR, "IOException", "Looks like you do not have Internet Connectivity." +
+            Popup.display(Alert.AlertType.ERROR, "uScheduler - IOException", "Looks like you do not have Internet Connectivity." +
                     "  Please fix then relaunch the application");
             Platform.exit();
         }catch (NoDataFoundException e){
-            Popup.display(Alert.AlertType.ERROR, "NoDataFoundException", "Unable to find campuses and/or subjects" +
+            Popup.display(Alert.AlertType.ERROR, "uSchuler - NoDataFoundException", "Unable to find campuses and/or subjects" +
                     "KSU's website may be experiencing difficulty, please try again later.");
             Platform.exit();
         }
@@ -152,7 +157,7 @@ public class Controller implements Initializable {
         });
         top.cmbTerm.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
             if(oldValue != null){
-                if(Popup.userAccept("Warning", "By changing the term all your existing data will be lost, do you still wish to proceed?")){
+                if(Popup.userAccept("uScheduler", "By changing the term all your existing data will be lost, do you still wish to proceed?")){
                     hBoxes.clear();
                     hBoxList.clear();
                 }else{
@@ -179,35 +184,17 @@ public class Controller implements Initializable {
         hBoxes.get(0).setTerm(top.cmbTerm.getValue());
     }
 
-
-
-
-
-
-
-
-
-
-
     public void handleGenerateSchedule(ActionEvent e) {
         tabPane.getSelectionModel().select(resultsTab);
-        String output = "";
-        output += "Term: \n=====================\n";
-        //output += cmbTerm.getValue() + "\n" ;
-        output += "=====================\nCampuses: \n=====================\n";
-        //output += listCampus.getSelectionModel().getSelectedItems().toString() + "\n";
-        output += "=====================\nDays: \n=====================\n";
-        /*for(DayVBox day: days){
-            if(day.getDayData() != null){
-                output += (day.getDayData().toString()) + "\n";
-            }
-        }*/
-        output += "=====================\nCourses: \n=====================\n";
-        for(CourseHBox row: hBoxes){
-            if(row.getCourseData() != null){
-                output += (row.getCourseData().toString()) + "\n";
-            }
+        /*/Disable Generate Schedules button if any of the sectionsquery(s) are set to 0
+        Check POTENTIAL_MAX
+        cannot duplicate courses
+        */
+        //create 2 dimensional array where first dimesion is hboxes.size();
+        Sections.Section[][] courseSections = new Sections.Section[hBoxes.size()][];
+        for(int i = 0; i < hBoxes.size(); i++){
+            courseSections[i] = hBoxes.get(i).getSectionsQuery().results2();
         }
-        displayText.setText(output);
+        int schedulesGenerated = ScheduleGenerator.generate(courseSections);
     }
 }

@@ -14,7 +14,7 @@ import java.util.GregorianCalendar;
  * A simple class to model a time of day without modeling second precision, time zones, or a date.
  * Internal, this class stores a time with hour and minute precision.
  * 
- * <p>This class is designed to aid the implementation of a {@link uscheduler.internaldata.Sections.MeetingTime MeetingTime}'s start time and end time.
+ * <p>This class is designed to aid the implementation of a {@link uscheduler.internaldata.Sections.Section.MeetingTime MeetingTime}'s start time and end time.
  * To simplify the implementation of data constraints and ensuring data integrity associated with a MeetingTime's start time and end time, 
  * this class is designed so that objects of this type are immutable. Thus, this class ensures that a UTime object's value can not change after construction.
  * 
@@ -83,7 +83,7 @@ public class UTime implements Comparable<UTime>{
      * @return the distance, in terms of minutes, from this UTime to pOther
      */  
     public int minutesTo(UTime pOther){
-        return (this.cHour * 24 + this.cHour) - (pOther.cHour * 24 + pOther.cHour);
+        return  (pOther.cHour * 60 + pOther.cMinute) - (this.cHour * 60 + this.cMinute);
     }
 
     /**
@@ -129,7 +129,7 @@ public class UTime implements Comparable<UTime>{
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof UTime)){
             return false;
         }
         final UTime other = (UTime) obj;

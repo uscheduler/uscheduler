@@ -185,26 +185,26 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                 //System.out.println("TextField is in focus");
             } else {
                 if(!txtCourseID.getText().isEmpty()) {
-                    System.out.println(": " + txtCourseID.getText());
+                    //System.out.println(": " + txtCourseID.getText());
                     try {
                         Importer.loadSections(t, cmbSubject.getValue(), txtCourseID.getText());
                     } catch (HTMLFormatException e) {
-                        Popup.display(Alert.AlertType.ERROR, "HTMLFormatException", "It appears that KSU has changed their courses page." +
+                        Popup.display(Alert.AlertType.ERROR, "uScheduler - HTMLFormatException", "It appears that KSU has changed their courses page." +
                                 "There is a chance the data collected is corrupt, please contact uscheduler team for resolution.");
                         Platform.exit();
                     } catch (IOException e) {
-                        Popup.display(Alert.AlertType.ERROR, "IOException", "Looks like you do not have Internet Connectivity." +
+                        Popup.display(Alert.AlertType.ERROR, "uScheduler - IOException", "Looks like you do not have Internet Connectivity." +
                                 "  Please fix then relaunch the application");
                         Platform.exit();
                     } catch (NoDataFoundException e) {
-                        Popup.display(Alert.AlertType.WARNING, "NoDataFoundException", "It appears you entered an incorrect " +
+                        Popup.display(Alert.AlertType.WARNING, "uScheduler - NoDataFoundException", "It appears you entered an incorrect " +
                                 "course ID.  Please try entering another.  If you are sure the number you entered is correct," +
                                 " please try entering it again.");
                     }
                     this.clearLists();
                     Courses.Course crs = Courses.get(this.cmbSubject.getValue(), this.txtCourseID.getText());
-                    List<Sections.Section> sections = Sections.getByCourseReadOnly(t, crs, Sections.SEC_NUM_ASC);
-                    System.out.println(sections);
+                    List<Sections.Section> sections = Sections.getByCourse1(t, crs, Sections.SEC_NUM_ASC);
+                    System.out.println(sections.size());
                     this.setSections(sections);
                     this.setSessions(Sections.getDistinctSessions(sections));
                     this.formats.addAll(Sections.getDistinctMethods(sections));
@@ -330,17 +330,7 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
     public void resultsChanged(SectionsQuery sq) {
         this.remainingSections.setText(this.sectionsQuery.resultsSize() + " Sections available");
     }
-    ArrayList<String> getCourseData(){
-        ArrayList<String> output = new ArrayList<>();
-        if(!disabled){
-            //output.add(cmbSubject.getValue());
-            output.add(cmbCourseAvail.getValue());
-            output.add(txtCourseID.getText());
-            output.add(listSectionNumber.getSelectionModel().getSelectedItems().toString());
-            output.add(listSession.getSelectionModel().getSelectedItems().toString());
-            output.add(listFormat.getSelectionModel().getSelectedItems().toString());
-            output.add(listInstructor.getSelectionModel().getSelectedItems().toString());
-            return output;
-        }else{ return null; }
+    SectionsQuery getSectionsQuery(){
+        return sectionsQuery;
     }
 }

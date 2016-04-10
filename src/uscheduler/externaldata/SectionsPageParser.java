@@ -63,18 +63,25 @@ public final class SectionsPageParser {
     /**
      * Parses KSU sections from the Sections Page (KSU Class Schedule Listing) into a List of HTMLSection objects. 
      * The KSU Sections Page is retrieved via a call to {@link uscheduler.externaldata.DocumentRequester#getSectionsPage(int, java.lang.String, java.lang.String) DocumentRequester.getSectionsPage(pTermNum, "", "")}
+     * 
+     * @deprecated <p><b>NOTE:</b>This method is for testing and debugging purposes only and will not be used in the final product.
+     * 
      * @param pTermNum the term number that will be used as the term argument in the KSU HTTP request. 
      * @return a LinkedList of HTMLSections objects representing the sections parsed from the retrieved Sections Page
      * @throws IOException if timed out or failed to make a connection for any reason
      * @throws uscheduler.externaldata.HTMLFormatException if the page returned does not have the HTML structure expected of the Sections Page.
      * @throws uscheduler.externaldata.NoDataFoundException If KSU returned a Sections page with no data as a result of the provided term number, subject, and course parameters. 
      */    
+    @Deprecated
     public static LinkedList<HTMLSection> parseFromWeb(int pTermNum) throws IOException, HTMLFormatException, NoDataFoundException  {
         Document doc = DocumentRequester.getSectionsPage(pTermNum, "", "");
         return parseSectionsPage(doc, pTermNum );
     }  
     /**
      * Parses a local Sections Page file into a LinkedList of HTMLSection objects.
+     * 
+     * @deprecated <p><b>NOTE:</b>This method is for testing and debugging purposes only and will not be used in the final product.
+     * 
      * @param pFile the File object of the file that is to be parsed.
      * @param pTermNum the term number for the Sections apply
      * @return a linked list LinkedList of HTMLSection objects representing the sections parsed from the Sections Page file
@@ -82,6 +89,7 @@ public final class SectionsPageParser {
      * @throws uscheduler.externaldata.HTMLFormatException if the file does not have the HTML structure expected of the Sections Page.
      * @throws uscheduler.externaldata.NoDataFoundException If the file represents a Sections page that was generated with a term number, subject, and course parameters in which KSU returned a page with no results. 
      */ 
+    @Deprecated
     public static LinkedList<HTMLSection> parseFromFile(File pFile, int pTermNum) throws IOException, HTMLFormatException, NoDataFoundException {
         Document doc = Jsoup.parse(pFile, null);
         return parseSectionsPage(doc, pTermNum);
