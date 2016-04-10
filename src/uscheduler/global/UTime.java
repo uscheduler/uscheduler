@@ -45,7 +45,7 @@ public class UTime implements Comparable<UTime>{
      * <p><b>Midnight and Noon: </b> "12:00 am" is parsed as midnight and is considered the earliest time of the day. "12:00 pm" is parsed as noon. 
      * Thus, 12:00 am (midnight) &lt; 12:01 am, and 12:00 pm (noon) &lt;  11:59 pm (last minute of day)
      * @param pTime the string representation of the time from which to construct the UTime.
-     * @throws ParseException 
+     * @throws ParseException  if the specified time string cannot be parsed.
      */
     public UTime(String pTime) throws ParseException{
         Calendar cal = new GregorianCalendar();
@@ -54,6 +54,20 @@ public class UTime implements Comparable<UTime>{
         cMinute = cal.get(Calendar.MINUTE); 
         cStringRep = pTime;
     }
+    /**
+     * Constructs a new UTime from a the specified hour and minute
+     * @param pHour The hour of day (0-23)
+     * @param pMinute The minute of day (0-59)
+     */
+    public UTime(int pHour, int pMinute){
+        Calendar cal = new GregorianCalendar();
+        cal.set(0, 0, 0, pHour, pMinute);
+        SimpleDateFormat sdfDate = new SimpleDateFormat("h:mm a");
+        cHour = cal.get(Calendar.HOUR_OF_DAY);
+        cMinute = cal.get(Calendar.MINUTE); 
+        cStringRep = sdfDate.format(cal.getTime());
+    }
+    
     /**
      * Returns a new UTime that is a copy of this UTime.
      * @return a new UTime that is a copy of this UTime

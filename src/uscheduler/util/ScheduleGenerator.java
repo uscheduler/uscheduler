@@ -18,7 +18,7 @@ public final class ScheduleGenerator {
      * All code that depends on this value should reference this variable. 
      * The value is currently set at 8, but it can and probably will be changed once we run such an operation and determine performance.
      */
-    public static final int COURSE_MAX = 6;
+    public static final int COURSE_MAX = 7;
     
     /**
      * The constant that specifies the max number of schedules that will be generated in a GenerateSchedules() operation. 
@@ -28,10 +28,9 @@ public final class ScheduleGenerator {
     public static final int SCHEDULE_MAX = 10000;
 
     /**
-     * <br>
-     * <b>!!!NOT YET IMPLEMENTED!!!</b>
-     * <br>
-     * @param pSections the array of arrays of Section objects from which to generate schedules.
+     * Need to describe...
+     * 
+     * @param pSections a two-dimensional array of Section objects from which to generate schedules.
      */
     public synchronized static int generate(Section[][] pSections) {
         if(pSections == null)
@@ -47,6 +46,7 @@ public final class ScheduleGenerator {
             case 4:  return generate4(pSections);
             case 5:  return generate5(pSections);
             case 6:  return generate6(pSections);
+            case 7:  return generate7(pSections);
             default: throw new IllegalArgumentException("Too many lists of sections.");
         }
     }
@@ -115,6 +115,25 @@ public final class ScheduleGenerator {
                                         if (!sec0.overlaps(sec4) && !sec1.overlaps(sec4) && !sec2.overlaps(sec4) && !sec3.overlaps(sec4))
                                             for (Section sec5 : pSections[5])
                                                 Schedules.addSchedule(sec0, sec1, sec2, sec3, sec4, sec5);
+        return Schedules.size() - schedulesSizeBefore;
+
+    }
+    private static int generate7(Section[][] pSections) {
+        int schedulesSizeBefore = Schedules.size();
+        
+        for (Section sec0 : pSections[0]) 
+            for (Section sec1 : pSections[1]) 
+                if (!sec0.overlaps(sec1)) 
+                    for (Section sec2 : pSections[2]) 
+                        if (!sec0.overlaps(sec2) && !sec1.overlaps(sec2))
+                            for (Section sec3 : pSections[3]) 
+                                if (!sec0.overlaps(sec3) && !sec1.overlaps(sec3) && !sec2.overlaps(sec3))
+                                    for (Section sec4 : pSections[4]) 
+                                        if (!sec0.overlaps(sec4) && !sec1.overlaps(sec4) && !sec2.overlaps(sec4) && !sec3.overlaps(sec4))
+                                            for (Section sec5 : pSections[5])
+                                                if (!sec0.overlaps(sec5) && !sec1.overlaps(sec5) && !sec2.overlaps(sec5) && !sec3.overlaps(sec5) && !sec4.overlaps(sec5))
+                                                    for (Section sec6 : pSections[6])
+                                                        Schedules.addSchedule(sec0, sec1, sec2, sec3, sec4, sec5, sec6);
         return Schedules.size() - schedulesSizeBefore;
 
     }

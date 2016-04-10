@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TreeSet;
 import uscheduler.internaldata.Campuses.Campus;
 import uscheduler.internaldata.Courses.Course;
@@ -40,10 +41,11 @@ public final class Sections implements Table{
     
     /**
      * The HashMap to store the term+course index, in which the key of the index is: t.pkey() + "~" + c.pkey()
-     * The key maps to a linked list, which stores all Sections for the given term and course.
+     * The key maps to an ArrayList, which stores all Sections for the given term and course.
      * This HashMap is used to provide quick access to all sections of a given term and course.
      */
-    private static final HashMap<String, LinkedList<Section>> cTermCourseIndex = new HashMap();
+    private static final HashMap<String, ArrayList<Section>> cTermCourseIndex = new HashMap();
+    
     
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
@@ -85,9 +87,9 @@ public final class Sections implements Table{
             
             //Add the new section to the term+course index
             String key = pSession.term().pkey() + "~" + pCourse.pkey();
-            LinkedList<Section> sectionsList = cTermCourseIndex.get(key);
+            ArrayList<Section> sectionsList = cTermCourseIndex.get(key);
             if (sectionsList == null){
-                sectionsList = new LinkedList();
+                sectionsList = new ArrayList();
                 sectionsList.add(temp);
                 cTermCourseIndex.put(key, sectionsList); 
             } else {
@@ -122,31 +124,73 @@ public final class Sections implements Table{
     }
 
     /**
-     * Returns a list of all Sections in no particular order. This method is mostly for debugging and probably has no use in finished product.
+     * Returns a read-only list of all Sections in no particular order. This method is mostly for debugging and probably has no use in finished product.
      * 
-     * @return A list of all Sections in no particular order.
+     * @return A read-only list of all Sections in no particular order.
      */
     public static ArrayList<Section> getAll(){
-        ArrayList<Section> list = new ArrayList<>(cSections.values());
-        return list;
+        return (ArrayList<Section>) Collections.unmodifiableList((List<Section>) cSections.values());
     }
     /**
-     * Returns from the Sections table, a list of all sections from the specified Term and Course, in the specified order. 
+     * Returns from the Sections table, a new ArrayList of all sections from the specified Term and Course.
+     * <br>
+     * @param pTerm the Term of the sections to return. Not null.
+     * @param pCourse the Course of the sections to return. Not null.
+     * @return a new Arraylist of all sections whose Terms is pTerm and whose Course is pCourse.
+     */
+    public static ArrayList<Section> getByCourseCopy(Term pTerm, Course pCourse){
+        if (pTerm == null)
+            throw new IllegalArgumentException("Null pTerm Argument.");
+        if (pCourse == null)
+            throw new IllegalArgumentException("Null pCourse Argument.");
+        
+        ArrayList<Section> sectionsList = cTermCourseIndex.get(pTerm.pkey() + "~" + pCourse.pkey());
+        if (sectionsList == null){
+            return new ArrayList<>();
+        } else {
+            return new ArrayList<>(sectionsList);
+        } 
+    }    
+    /**
+     * Returns from the Sections table, a read-only list of all sections from the specified Term and Course.
+     * <br>
+     * @param pTerm the Term of the sections to return. Not null.
+     * @param pCourse the Course of the sections to return. Not null.
+     * @return a read-only list of all sections whose Terms is pTerm and whose Course is pCourse.
+     */
+    public static List<Section> getByCourseReadOnly(Term pTerm, Course pCourse){
+        if (pTerm == null)
+            throw new IllegalArgumentException("Null pTerm Argument.");
+        if (pCourse == null)
+            throw new IllegalArgumentException("Null pCourse Argument.");
+        
+        ArrayList<Section> sectionsList = cTermCourseIndex.get(pTerm.pkey() + "~" + pCourse.pkey());
+        if (sectionsList == null){
+            return Collections.unmodifiableList(new ArrayList<Section>());
+        } else {
+            return Collections.unmodifiableList(sectionsList);
+        } 
+    }    
+    /**
+     * Returns from the Sections table, a read-only list of all sections from the specified Term and Course, in the specified order. 
      * <br>
      * @param pTerm the Term of the sections to return. Not null.
      * @param pCourse the Course of the sections to return. Not null.
      * @param pOrder a Comparator of type Section that specifies how to order the returned list. Not null.
-     * @return a list of all sections from the specified whose Terms is pTerm and whose Course is pCourse, in the order specified by pOrder.
+     * @return a read-only list of all sections from the specified whose Terms is pTerm and whose Course is pCourse, in the order specified by pOrder.
      */
-    public static ArrayList<Section> getByCourse(Term pTerm, Course pCourse, Comparator<Section> pOrder){
-        String key = pTerm.pkey() + "~" + pCourse.pkey();
-        LinkedList<Section> sectionsLinkedList = cTermCourseIndex.get(key);
-        if (sectionsLinkedList == null){
-            return new ArrayList<>();
+    public static List<Section> getByCourseReadOnly(Term pTerm, Course pCourse, Comparator<Section> pOrder){
+        if (pTerm == null)
+            throw new IllegalArgumentException("Null pTerm Argument.");
+        if (pCourse == null)
+            throw new IllegalArgumentException("Null pCourse Argument.");
+        
+        ArrayList<Section> sectionsList = cTermCourseIndex.get(pTerm.pkey() + "~" + pCourse.pkey());
+        if (sectionsList == null){
+            return Collections.unmodifiableList(new ArrayList<Section>());
         } else {
-            ArrayList<Section> returnList = new ArrayList<>(sectionsLinkedList);
-            Collections.sort(returnList, pOrder);
-            return returnList;
+            Collections.sort(sectionsList, pOrder);
+            return Collections.unmodifiableList(sectionsList);
         } 
     }
     /**
@@ -382,17 +426,18 @@ public final class Sections implements Table{
          * @return the Section's seats available
          */
         public int waitlistAvailable(){return cWaitlistAvailable;}
+        
         /**
-         * @return a list of this Section's MeetingTimes, in no particular order
+         * @return a new array containing this Section's MeetingTimes, in no particular order
          */
-        public ArrayList<MeetingTime> meetings(){
-            return new ArrayList<>(cMeetings);
-        }  
+        public MeetingTime[] meetings(){
+            return cMeetings.toArray(new MeetingTime[cMeetings.size()]);
+        } 
         /**
-         * @return a list of this Section's Instructors, in no particular order
+         * @return a new array of this Section's Instructors, in no particular order
          */
-        public ArrayList<Instructor> instructors(){
-            return new ArrayList<>(cInstructors);
+        public Instructor[] instructors(){
+            return cInstructors.toArray(new Instructor[cInstructors.size()]);
         }  
                
         /**
@@ -444,9 +489,9 @@ public final class Sections implements Table{
         private final UTime cStartTime;
         private final UTime cEndTime;
         /**
-         * The HashSet used to store a MeetingTime's DayOfWeek objects, using DayOfWeek's parent Enum definition of hashCode and equals to ensure no duplicates.
+         * The TreeSet used to store a MeetingTime's DayOfWeek objects, using DayOfWeek's parent Enum implementation of Comparable
         */
-        private final HashSet<DayOfWeek> cDays;
+        private final TreeSet<DayOfWeek> cDays;
 
         /**
          * +++++++++++++++++++++++++++++++++++++++++++This is the one to keep++++++++++++++++++++++++++++++++++++++++
@@ -472,7 +517,7 @@ public final class Sections implements Table{
             if (pDays == null || pDays.isEmpty())
                 throw new IllegalArgumentException("A MeetingTime must have at least one day.");
             
-            cDays = new HashSet();
+            cDays = new TreeSet();
             cSection = pSection;
             cStartTime = pStartT;
             cEndTime = pEndT;
@@ -528,12 +573,10 @@ public final class Sections implements Table{
          */
         public UTime endTime(){return cEndTime;}
         /**
-         * @return an ordered list of this MeetingTime's days, where order is defined by the DayOfWeek enum.
+         * @return a new array of this MeetingTime's days, ordered by DayOfWeek.
          */
-        public ArrayList<DayOfWeek> days(){
-            ArrayList<DayOfWeek> daysAL = new ArrayList<>(cDays);
-            Collections.sort(daysAL);
-            return daysAL;
+        public DayOfWeek[] days(){
+            return cDays.toArray(new DayOfWeek[cDays.size()]);
         }  
         /**
          * @return a String consisting of the short display name of each DayOfWeek in this MeetingTime, separated by a comma and space.

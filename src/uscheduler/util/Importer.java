@@ -84,9 +84,9 @@ public final class Importer {
      * <p>This method is for testing and debugging so to avoid frequent requests from KSU Sections Page. 
      * 
      * @param pTerm the Term  of the Sections to parse and load.
-     * @throws uscheduler.externaldata.HTMLFormatException bla bla bla
-     * @throws java.io.IOException bla bla bla
-     * @throws uscheduler.externaldata.NoDataFoundException 
+     * @throws IOException if the file could not be opened and read
+     * @throws uscheduler.externaldata.HTMLFormatException if the file does not have the HTML structure expected of the Sections Page.
+     * @throws uscheduler.externaldata.NoDataFoundException If the file represents a Sections page that was generated with a term number in which KSU returned a page with no results.  
      */
     public static void loadSectionsFromFile(Terms.Term pTerm) throws HTMLFormatException, IOException, NoDataFoundException{
         File f;
@@ -95,7 +95,7 @@ public final class Importer {
                      break;
             case 201605:  f = new File("C:\\Users\\psout\\Downloads\\src\\src\\uscheduler2\\2016_Summer_All.txt");
                      break;
-            case 201608:  f = new File("C:\\MyApps\\myJava\\UScheduler2\\src\\uscheduler2\\2016_Fall_All.txt");
+            case 201608:  f = new File("C:\\Users\\psout\\Downloads\\src\\src\\uscheduler2\\2016_Fall_All.txt");
                      break;
             default: f = null;
                      break;
@@ -108,7 +108,7 @@ public final class Importer {
      * <p>More specifically, extracts sections from KSU via a call to 
      * {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int, String, String) SectionsPageParser.parseFromWeb(pTerm.termNum(), pSubject.subjectAbbr(), pCourseNum)}.
      * Then extracts from the parsed sections, the Sections, Instructors, Sessions, and Courses, then imports into the corresponding tables via calls to:
-     * ,
+     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.global.InstructionalMethod, int, int)  Sections.add}, 
      * {@link uscheduler.internaldata.Instructors#add(java.lang.String)  Instructors.add},
      * {@link uscheduler.internaldata.Sessions#add(uscheduler.internaldata.Terms.Term, java.lang.String, uscheduler.global.UDate, uscheduler.global.UDate)  Sessions.add}, and
      * {@link uscheduler.internaldata.Courses#add(uscheduler.internaldata.Subjects.Subject, java.lang.String)   Courses.add}
@@ -129,7 +129,7 @@ public final class Importer {
      * <p>More specifically, extracts sections from KSU via a call to 
      * {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int, String) SectionsPageParser.parseFromWeb(pTerm.termNum(), pSubject.subjectAbbr())}.
      * Then extracts from the parsed sections, the Sections, Instructors, Sessions, and Courses, then imports into the corresponding tables via calls to:
-
+     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.util.InstructionalMethod, int, int)  Sections.add}, 
      * {@link uscheduler.internaldata.Instructors#add(java.lang.String)   Instructors.add},
      * {@link uscheduler.internaldata.Sessions#add(uscheduler.internaldata.Terms.Term, java.lang.String, uscheduler.global.UDate, uscheduler.global.UDate)  Sessions.add}, and
      * {@link uscheduler.internaldata.Courses#add(uscheduler.internaldata.Subjects.Subject, java.lang.String)   Courses.add}
@@ -150,10 +150,11 @@ public final class Importer {
      * <p>More specifically, extracts sections from KSU via a call to 
      * {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int) SectionsPageParser.parseFromWeb(pTerm.termNum())}.
      * Then extracts from the parsed sections, the Sections, Instructors, Sessions, and Courses, then imports into the corresponding tables via calls to:
-
-     * {@link uscheduler.internaldata.Instructors#add(java.lang.String)  Instructors.add},
-     * {@link uscheduler.internaldata.Sessions#add(uscheduler.internaldata.Terms.Term, java.lang.String, uscheduler.global.UDate, uscheduler.global.UDate)   Sessions.add}, and
-     * {@link uscheduler.internaldata.Courses#add(uscheduler.internaldata.Subjects.Subject, java.lang.String)  Courses.add}
+     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.global.InstructionalMethod, int, int) Sections.add}, 
+     * {@link uscheduler.internaldata.Instructors#add(java.lang.String) Instructors.add()},
+     * {@link uscheduler.internaldata.Sessions#add(uscheduler.internaldata.Terms.Term, java.lang.String, uscheduler.global.UDate, uscheduler.global.UDate)   Sessions.add},
+     * and
+     * {@link uscheduler.internaldata.Courses#add(uscheduler.internaldata.Subjects.Subject, java.lang.String) Courses.add}
      * 
      * @param pTerm the Term  to use in the call to {@link uscheduler.externaldata.SectionsPageParser#parseFromWeb(int) SectionsPageParser.parseFromWeb(pTerm.termNum())}.
 

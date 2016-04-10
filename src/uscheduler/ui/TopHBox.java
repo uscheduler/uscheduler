@@ -11,6 +11,8 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uscheduler.internaldata.Campuses;
 import uscheduler.internaldata.Terms;
+
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 
 /**
@@ -18,7 +20,7 @@ import java.util.ArrayList;
  */
 public class TopHBox extends HBox {
     ComboBox<Terms.Term> cmbTerm = new ComboBox<>();
-    private ListView<Campuses.Campus> listCampus = new ListView<>();
+    ListView<Campuses.Campus> listCampus = new ListView<>();
     private VBox vCampus = new VBox(5);
     private VBox vLabels = new VBox();
     private Label before = new Label("No Classes Before:");
@@ -26,25 +28,27 @@ public class TopHBox extends HBox {
     private final Tooltip tooltip = new Tooltip();
     private ObservableList<Terms.Term> terms = FXCollections.observableArrayList();
     private ObservableList<Campuses.Campus> campuses = FXCollections.observableArrayList();
-    private ArrayList<DayVBox> days = new ArrayList<>();
+    ArrayList<DayVBox> days = new ArrayList<>();
 
     TopHBox() {
         vCampus.getChildren().addAll(new Label("Desired Campuses"), listCampus);
         vLabels.getChildren().addAll(before, after);
         this.getChildren().addAll(cmbTerm, vCampus, vLabels);
-        days.add(new DayVBox("Monday", 8, 20));
-        days.add(new DayVBox("Tuesday", 8, 20));
-        days.add(new DayVBox("Wednesday", 8, 20));
-        days.add(new DayVBox("Thursday", 8, 20));
-        days.add(new DayVBox("Friday", 8, 20));
-        days.add(new DayVBox("Saturday", 8, 20));
-        days.add(new DayVBox("Sunday", 8, 20));
+        days.add(new DayVBox(DayOfWeek.MONDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.TUESDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.WEDNESDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.THURSDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.FRIDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.SATURDAY, 8, 20));
+        days.add(new DayVBox(DayOfWeek.SUNDAY, 8, 20));
         this.getChildren().addAll(days);
         formatItems();
+
     }
     private void formatItems(){
-        tooltip.setText("Press control and left mouse click\n to select multiple entries.");
+        tooltip.setText("Press control and left mouse click\n to select multiple entries.\n Or hit control + a to select all.");
         cmbTerm.setPromptText("Select Term");
+        cmbTerm.setMaxWidth(210);
         listCampus.setMaxHeight(75);
         listCampus.setMaxWidth(175);
         listCampus.setTooltip(tooltip);
