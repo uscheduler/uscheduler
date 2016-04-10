@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
@@ -64,6 +65,26 @@ public class DayVBox extends VBox implements DayTimeArgObserver{
         checkDay.setAlignment(Pos.CENTER);
         dta = new SectionsQuery.DayTimeArg(day);
         dta.addObserver(this);
+        this.cmbTimeBefore.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
+            if(newValue.compareTo(this.cmbTimeAfter.getValue()) < 0){
+                dta.setMinStart(newValue);
+                this.minStartChanged(this.dta, oldValue);
+            }else{
+                Popup.display(Alert.AlertType.WARNING, "Invalid Time", "The time you are attempting to select is not" +
+                        " valid.  Please select a time that is less than the \"No Classes After\" ");
+                this.cmbTimeBefore.setValue(oldValue);
+            }
+        });
+        this.cmbTimeAfter.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
+            if(newValue.compareTo(this.cmbTimeBefore.getValue()) > 0){
+                dta.setMaxEnd(newValue);
+                this.maxEndChanged(this.dta, oldValue);
+            }else{
+                Popup.display(Alert.AlertType.WARNING, "Invalid Time", "The time you are attempting to select is not" +
+                        " valid.  Please select a time that is greater than the \"No Classes Before\" ");
+                this.cmbTimeAfter.setValue(oldValue);
+            }
+        });
     }
     private void fillTimes(int startTime, int endTime) {
         times.add(null);
