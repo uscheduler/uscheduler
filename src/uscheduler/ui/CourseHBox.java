@@ -1,6 +1,8 @@
 package uscheduler.ui;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -44,7 +46,7 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
     private int onRow = 0;
     private boolean disabled = false;
     ComboBox<Subjects.Subject> cmbSubject = new ComboBox<>();
-    private ComboBox<String> cmbCourseAvail = new ComboBox<>();
+    private ComboBox<SectionsQuery.AvailabilityArg> cmbCourseAvail = new ComboBox<>();
     TextField txtCourseID = new TextField();
     private ListView listSectionNumber = new ListView();
     private ListView listSession = new ListView();
@@ -63,11 +65,18 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
     private ObservableList<Sessions.Session> sessions = FXCollections.observableArrayList();
     private ObservableList<InstructionalMethod> formats = FXCollections.observableArrayList();
     private ObservableList<Instructors.Instructor> instructors = FXCollections.observableArrayList();
+    final ObservableList<SectionsQuery.AvailabilityArg> comboAvailability = FXCollections.observableArrayList(
+            SectionsQuery.AvailabilityArg.ANY,
+            SectionsQuery.AvailabilityArg.OPEN_SEATS,
+            SectionsQuery.AvailabilityArg.OPEN_WAITLIST);
     private final Tooltip tooltip = new Tooltip();
     private Label remainingSections = new Label();
     private SectionsQuery sectionsQuery = new SectionsQuery();
-
-
+    private String numSelectedSections = "";
+    private String numSelectedSessions = "";
+    private String numSelectedFormats = "";
+    private String numSelectedInstructors = "";
+    private StringProperty numSelectedSec = new SimpleStringProperty();
 
     /**
      *
@@ -76,19 +85,17 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
         this.vSubjCourse.getChildren().addAll(this.cmbSubject,this.txtCourseID,this.cmbCourseAvail,this.remainingSections);
         this.resultsChanged(this.sectionsQuery);
         this.listSession.getSelectionModel().selectAll();
-        String test;
-        test = (listSession.getSelectionModel().getSelectedItems().isEmpty()) ? "(All)": listSession.getSelectionModel().getSelectedItems().size() + " Selected";
-
-        this.vSession.getChildren().addAll(new Label("Desired Session " + test),this.listSession);
-        this.vSection.getChildren().addAll(new Label("Desired Section"),this.listSectionNumber);
-        this.vFormat.getChildren().addAll(new Label("Desired Format"),this.listFormat);
-        this.vInstructor.getChildren().addAll(new Label("Desired Instructor(s)"),this.listInstructor);
+        this.vSession.getChildren().addAll(new Label("Desired Session " + numSelectedSessions),this.listSession);
+        this.vSection.getChildren().addAll(new Label("Desired Section " + numSelectedSections),this.listSectionNumber);
+        this.vFormat.getChildren().addAll(new Label("Desired Format " + numSelectedFormats),this.listFormat);
+        this.vInstructor.getChildren().addAll(new Label("Desired Instructor(s) " + numSelectedInstructors),this.listInstructor);
         this.vButtons.getChildren().addAll(this.buttonRemove,this.buttonDisable);
         this.tooltip.setText("Press control and left mouse click\n to select multiple entries.");
         this.formatItems();
-        this.fillStaticFields();
         this.getChildren().addAll(this.vSubjCourse,this.vSection,this.vSession,this.vFormat,this.vInstructor,this.vButtons);
         this.setSpacing(5);
+        this.cmbCourseAvail.setItems(comboAvailability);
+        setActions();
         this.sectionsQuery.addObserver(this);
     }
     private void formatItems(){
@@ -124,31 +131,6 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
         this.vButtons.setAlignment(Pos.CENTER);
         this.setMaxHeight(140);
         this.setAlignment(Pos.CENTER);
-    }
-    private void fillStaticFields(){
-        final ObservableList<String> comboAvailability = FXCollections.observableArrayList(
-                "Classes with open seats",
-                "Show ALL classes");
-        this.cmbCourseAvail.setItems(comboAvailability);
-        this.buttonDisable.setOnAction(e -> {
-                if(!this.disabled) {
-                    this.vSubjCourse.setDisable(true);
-                    this.vSection.setDisable(true);
-                    this.vSession.setDisable(true);
-                    this.vFormat.setDisable(true);
-                    this.vInstructor.setDisable(true);
-                    this.buttonDisable.setText("Enable");
-                    this.disabled = true;
-                }else{
-                    this.vSubjCourse.setDisable(false);
-                    this.vSection.setDisable(false);
-                    this.vSession.setDisable(false);
-                    this.vFormat.setDisable(false);
-                    this.vInstructor.setDisable(false);
-                    this.buttonDisable.setText("Disable");
-                    this.disabled = false;
-                }
-        });
     }
     void setSubjects(ArrayList<Subjects.Subject> s){
         this.subjects.addAll(s);
@@ -217,7 +199,7 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
             }
         });
     }
-    void setSections(List<Sections.Section> s){
+    private void setSections(List<Sections.Section> s){
         this.sections.addAll(s);
         this.listSectionNumber.setItems(this.sections);
         this.listSectionNumber.setCellFactory(new Callback<ListView<Sections.Section>, ListCell<Sections.Section>>() {
@@ -235,21 +217,8 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                 return cell;
             }
         });
-        this.listSectionNumber.setOnMouseClicked(e -> {
-            if(this.listSectionNumber.getSelectionModel().getSelectedItems() != null){
-                if(this.listSectionNumber.getSelectionModel().getSelectedItems().size() < s.size()) {
-                    this.sectionsQuery.removeAllSections();
-                    for (Object obj : this.listSectionNumber.getSelectionModel().getSelectedItems()) {
-                        this.sectionsQuery.addSection((Sections.Section) obj);
-                        //System.out.println("Results : " + sectionsQuery.results());
-                    }
-                }else{
-                    this.sectionsQuery.removeAllSections();
-                }
-            }
-        });
     }
-    void setSessions(List<Sessions.Session> s){
+    private void setSessions(List<Sessions.Session> s){
         this.sessions.addAll(s);
         this.listSession.setItems(this.sessions);
         this.listSession.setCellFactory(new Callback<ListView<Sessions.Session>, ListCell<Sessions.Session>>() {
@@ -267,20 +236,8 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                 return cell;
             }
         });
-        this.listSession.setOnMouseClicked(e -> {
-            if(this.listSession.getSelectionModel().getSelectedItems() != null){
-               if(this.listSession.getSelectionModel().getSelectedItems().size() < s.size()){
-                    this.sectionsQuery.removeAllSessions();
-                        for (Object obj : this.listSession.getSelectionModel().getSelectedItems()) {
-                            this.sectionsQuery.addSession((Sessions.Session) obj);
-                        }
-                }else{
-                    this.sectionsQuery.removeAllSessions();
-                }
-            }
-        });
     }
-    void setInstructors(List<Instructors.Instructor> i) {
+    private void setInstructors(List<Instructors.Instructor> i) {
         this.instructors.addAll(i);
         this.listInstructor.setItems(this.instructors);
         this.listInstructor.setCellFactory(new Callback<ListView<Instructors.Instructor>, ListCell<Instructors.Instructor>>() {
@@ -298,10 +255,13 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                 return cell;
             }
         });
+    }
+    private void setActions(){
         this.listInstructor.setOnMouseClicked(e -> {
             if(this.listInstructor.getSelectionModel().getSelectedItems() != null){
-                if(this.listInstructor.getSelectionModel().getSelectedItems().size() < i.size()){
+                if(this.listInstructor.getSelectionModel().getSelectedItems().size() < instructors.size()){
                     this.sectionsQuery.removeAllInstructors();
+                    numSelectedInstructors = (listInstructor.getSelectionModel().getSelectedItems().isEmpty()) ? "(All)": listInstructor.getSelectionModel().getSelectedItems().size() + " Selected";
                     for (Object obj : this.listInstructor.getSelectionModel().getSelectedItems()) {
                         this.sectionsQuery.addInstructor((Instructors.Instructor) obj);
                     }
@@ -309,6 +269,67 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                     this.sectionsQuery.removeAllInstructors();
                 }
             }
+        });
+        this.listSectionNumber.setOnMouseClicked(e -> {
+            if(this.listSectionNumber.getSelectionModel().getSelectedItems() != null){
+                if(this.listSectionNumber.getSelectionModel().getSelectedItems().size() < sections.size()) {
+                    this.sectionsQuery.removeAllSections();
+                    numSelectedSections = (listSectionNumber.getSelectionModel().getSelectedItems().isEmpty()) ? "(All)": listSectionNumber.getSelectionModel().getSelectedItems().size() + " Selected";
+                    for (Object obj : this.listSectionNumber.getSelectionModel().getSelectedItems()) {
+                        this.sectionsQuery.addSection((Sections.Section) obj);
+                    }
+                }else{
+                    this.sectionsQuery.removeAllSections();
+                }
+            }
+        });
+        this.listSession.setOnMouseClicked(e -> {
+            if(this.listSession.getSelectionModel().getSelectedItems() != null){
+                if(this.listSession.getSelectionModel().getSelectedItems().size() < sessions.size()){
+                    this.sectionsQuery.removeAllSessions();
+                    numSelectedSessions = (listSession.getSelectionModel().getSelectedItems().isEmpty()) ? "(All)": listSession.getSelectionModel().getSelectedItems().size() + " Selected";
+                    for (Object obj : this.listSession.getSelectionModel().getSelectedItems()) {
+                        this.sectionsQuery.addSession((Sessions.Session) obj);
+                    }
+                }else{
+                    this.sectionsQuery.removeAllSessions();
+                }
+            }
+        });
+        this.listFormat.setOnMouseClicked(e -> {
+            if(this.listFormat.getSelectionModel().getSelectedItems() != null){
+                if(this.listFormat.getSelectionModel().getSelectedItems().size() < formats.size()) {
+                    this.sectionsQuery.removeAllInstructionalMethods();
+                    numSelectedFormats = (listFormat.getSelectionModel().getSelectedItems().isEmpty()) ? "(All)": listFormat.getSelectionModel().getSelectedItems().size() + " Selected";
+                    for (Object obj : this.listFormat.getSelectionModel().getSelectedItems()) {
+                        this.sectionsQuery.addInstructionalMethod((InstructionalMethod) obj);
+                    }
+                }else{
+                    this.sectionsQuery.removeAllInstructionalMethods();
+                }
+            }
+        });
+        this.buttonDisable.setOnAction(e -> {
+            if(!this.disabled) {
+                this.vSubjCourse.setDisable(true);
+                this.vSection.setDisable(true);
+                this.vSession.setDisable(true);
+                this.vFormat.setDisable(true);
+                this.vInstructor.setDisable(true);
+                this.buttonDisable.setText("Enable");
+                this.disabled = true;
+            }else{
+                this.vSubjCourse.setDisable(false);
+                this.vSection.setDisable(false);
+                this.vSession.setDisable(false);
+                this.vFormat.setDisable(false);
+                this.vInstructor.setDisable(false);
+                this.buttonDisable.setText("Disable");
+                this.disabled = false;
+            }
+        });
+        this.cmbCourseAvail.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
+            sectionsQuery.setAvailability(newValue);
         });
     }
     void addDayTimeArg(SectionsQuery.DayTimeArg dta){
@@ -325,12 +346,14 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
     void safeRemove(){
         this.sectionsQuery.close();
     }
+    boolean isCourseDisabled(){ return disabled; }
+    SectionsQuery getSectionsQuery(){
+        return sectionsQuery;
+    }
 
     @Override
     public void resultsChanged(SectionsQuery sq) {
         this.remainingSections.setText(this.sectionsQuery.resultsSize() + " Sections available");
     }
-    SectionsQuery getSectionsQuery(){
-        return sectionsQuery;
-    }
+
 }

@@ -4,21 +4,8 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
-
-
-import uscheduler.externaldata.HTMLFormatException;
-import uscheduler.externaldata.NoDataFoundException;
-import uscheduler.global.InstructionalMethod;
-import uscheduler.internaldata.*;
-import uscheduler.util.Importer;
-import uscheduler.util.ScheduleGenerator;
-import uscheduler.util.SchedulePrinter;
-import uscheduler.util.SectionsQuery;
-import java.io.File;
-import java.io.IOException;
-import java.time.DayOfWeek;
-import java.util.ArrayList;
 
 public class Main extends Application {
 
@@ -29,6 +16,7 @@ public class Main extends Application {
         Controller myController = loader.getController();
         primaryStage.setTitle("uScheduler - Kennesaw's SMART Student Scheduler");
         primaryStage.setScene(new Scene(root, 1355, 735));
+        primaryStage.getIcons().add(new Image("uscheduler/uSchedulerIcon.png"));
         primaryStage.show();
     }
 

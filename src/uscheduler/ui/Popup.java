@@ -18,10 +18,16 @@ public class Popup {
     public static boolean userAccept(String title, String message){
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message);
         alert.setTitle(title);
-        Optional<ButtonType> result = alert.showAndWait();
-        if(alert.getResult() == ButtonType.OK)
+        Optional<ButtonType> result  = alert.showAndWait();
+        if(result.isPresent() && result.get() == ButtonType.OK)
             return true;
-        else
+        else if(result.isPresent()) {
+
+            //alert.close();
             return false;
+        }else {
+            alert.close();
+            return false;
+        }
     }
 }
