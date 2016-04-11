@@ -15,6 +15,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
+import javafx.stage.DirectoryChooser;
 import uscheduler.externaldata.HTMLFormatException;
 import uscheduler.externaldata.NoDataFoundException;
 import uscheduler.internaldata.*;
@@ -95,6 +96,7 @@ public class Controller implements Initializable {
             listCourse.setItems(hBoxList);
             setTermInHBox(0);
             setInitialDayTimeArg(0);
+            setCampusesInHBox();
         }
     }
     private void setDeleteAction(int j){
@@ -181,6 +183,8 @@ public class Controller implements Initializable {
         for(int j = 0; j < hBoxes.size(); j++){
             hBoxes.get(j).setSubjects(subjects);
         }
+        setCampusesInHBox();
+
     }
     private void setInitialDayTimeArg(int j){
         for(DayVBox d : top.days){
@@ -190,7 +194,24 @@ public class Controller implements Initializable {
     private void setTermInHBox(int j){
         hBoxes.get(j).setTerm(top.cmbTerm.getValue());
     }
-
+    private void setCampusesInHBox() {
+        top.listCampus.setOnMouseClicked(e -> {
+            if(top.listCampus.getSelectionModel().getSelectedItems() != null){
+                if(top.listCampus.getSelectionModel().getSelectedItems().size() < campuses.size()) {
+                    for(int j = 0; j < hBoxes.size(); j++) {
+                        hBoxes.get(j).removeAllCampuses();
+                        for (Object obj : top.listCampus.getSelectionModel().getSelectedItems()) {
+                            hBoxes.get(j).addCampus((Campuses.Campus) obj);
+                        }
+                    }
+                }else{
+                    for(int j = 0; j < hBoxes.size(); j++) {
+                        hBoxes.get(j).removeAllCampuses();
+                    }
+                }
+            }
+        });
+    }
     public void handleGenerateSchedule(ActionEvent e) {
         tabPane.getSelectionModel().select(resultsTab);
         /*/Disable Generate Schedules button if any of the sectionsquery(s) are set to 0
@@ -205,7 +226,8 @@ public class Controller implements Initializable {
             }
             int schedulesGenerated = ScheduleGenerator.generate(courseSections);
             try {
-                SchedulePrinter.printAll(new File("c:\\users\\psout\\Desktop\\testSchedules.txt"), false);
+                File saveLocation = Popup.getSaveLocation();
+                SchedulePrinter.printAll(new File(saveLocation + "\\uScheduler_Generated_Schedules.txt"), false);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -229,7 +251,7 @@ public class Controller implements Initializable {
 
 
 /*
-        MATTHEW's OUTPUT
+        MATTHEW's OUTPUT Drawing
 
 
     private GraphicsContext makeCRNbox(GraphicsContext gc, Color c, int factor, String crn, String prof, String avail, String campus, String session, String type, String subj, String coursenum, String section){

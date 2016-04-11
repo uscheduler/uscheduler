@@ -33,16 +33,6 @@ import java.util.List;
  * Created by aa8439 on 3/7/2016.
  */
 public class CourseHBox extends HBox implements SectionsQueryObserver{
-    /*
-    Need to implement the following:
-
-    +addCampus(c : Campus)
-    +removeCampus(c : Campus)
-    + MULTIPLE listeners for user selections(LISTVIEW, COMBOBOX, TEXTFIELD) to update SQ object
-
-    empty objects means no restrictions
-
-     */
     private int onRow = 0;
     private boolean disabled = false;
     ComboBox<Subjects.Subject> cmbSubject = new ComboBox<>();
@@ -166,38 +156,10 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
             if (newValue) {
                 //System.out.println("TextField is in focus");
             } else {
-                if(!txtCourseID.getText().isEmpty()) {
-                    //System.out.println(": " + txtCourseID.getText());
-                    try {
-                        Importer.loadSections(t, cmbSubject.getValue(), txtCourseID.getText());
-                    } catch (HTMLFormatException e) {
-                        Popup.display(Alert.AlertType.ERROR, "uScheduler - HTMLFormatException", "It appears that KSU has changed their courses page." +
-                                "There is a chance the data collected is corrupt, please contact uscheduler team for resolution.");
-                        Platform.exit();
-                    } catch (IOException e) {
-                        Popup.display(Alert.AlertType.ERROR, "uScheduler - IOException", "Looks like you do not have Internet Connectivity." +
-                                "  Please fix then relaunch the application");
-                        Platform.exit();
-                    } catch (NoDataFoundException e) {
-                        Popup.display(Alert.AlertType.WARNING, "uScheduler - NoDataFoundException", "It appears you entered an incorrect " +
-                                "course ID.  Please try entering another.  If you are sure the number you entered is correct," +
-                                " please try entering it again.");
-                    }
-                    this.clearLists();
-                    Courses.Course crs = Courses.get(this.cmbSubject.getValue(), this.txtCourseID.getText());
-                    List<Sections.Section> sections = Sections.getByCourse1(t, crs, Sections.SEC_NUM_ASC);
-                    System.out.println(sections.size());
-                    this.setSections(sections);
-                    this.setSessions(Sections.getDistinctSessions(sections));
-                    this.formats.addAll(Sections.getDistinctMethods(sections));
-                    this.listFormat.setItems(formats);
-                    this.setInstructors(Sections.getDistinctInstructors(sections));
-                    this.sectionsQuery.setCourse(crs);
-                    this.sectionsQuery.setAvailability(SectionsQuery.AvailabilityArg.ANY);
-                    this.resultsChanged(sectionsQuery);
-                }
+                textAction(t);
             }
         });
+        txtCourseID.setOnAction( e -> textAction(t) );
     }
     private void setSections(List<Sections.Section> s){
         this.sections.addAll(s);
@@ -332,6 +294,38 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
             sectionsQuery.setAvailability(newValue);
         });
     }
+    private void textAction(Terms.Term t) {
+        if (!txtCourseID.getText().isEmpty()) {
+            //System.out.println(": " + txtCourseID.getText());
+            try {
+                Importer.loadSections(t, cmbSubject.getValue(), txtCourseID.getText());
+            } catch (HTMLFormatException e) {
+                Popup.display(Alert.AlertType.ERROR, "uScheduler - HTMLFormatException", "It appears that KSU has changed their courses page." +
+                        "There is a chance the data collected is corrupt, please contact uscheduler team for resolution.");
+                Platform.exit();
+            } catch (IOException e) {
+                Popup.display(Alert.AlertType.ERROR, "uScheduler - IOException", "Looks like you do not have Internet Connectivity." +
+                        "  Please fix then relaunch the application");
+                Platform.exit();
+            } catch (NoDataFoundException e) {
+                Popup.display(Alert.AlertType.WARNING, "uScheduler - NoDataFoundException", "It appears you entered an incorrect " +
+                        "course ID.  Please try entering another.  If you are sure the number you entered is correct," +
+                        " please try entering it again.");
+            }
+            this.clearLists();
+            Courses.Course crs = Courses.get(this.cmbSubject.getValue(), this.txtCourseID.getText());
+            List<Sections.Section> sections = Sections.getByCourse1(t, crs, Sections.SEC_NUM_ASC);
+            System.out.println(sections.size());
+            this.setSections(sections);
+            this.setSessions(Sections.getDistinctSessions(sections));
+            this.formats.addAll(Sections.getDistinctMethods(sections));
+            this.listFormat.setItems(formats);
+            this.setInstructors(Sections.getDistinctInstructors(sections));
+            this.sectionsQuery.setCourse(crs);
+            this.sectionsQuery.setAvailability(SectionsQuery.AvailabilityArg.ANY);
+            this.resultsChanged(sectionsQuery);
+        }
+    }
     void addDayTimeArg(SectionsQuery.DayTimeArg dta){
         this.sectionsQuery.addDayTimeArg(dta);
     }
@@ -341,8 +335,8 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
     void setTerm(Terms.Term t){
         this.sectionsQuery.setTerm(t);
     }
-    void addCampus(Campuses.Campus c){ this.sectionsQuery.addCampus(c);}
-    void removeCampus(){}
+    void addCampus(Campuses.Campus c) { this.sectionsQuery.addCampus(c); }
+    void removeAllCampuses() { this.sectionsQuery.removeAllCampuses(); }
     void safeRemove(){
         this.sectionsQuery.close();
     }
@@ -355,5 +349,4 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
     public void resultsChanged(SectionsQuery sq) {
         this.remainingSections.setText(this.sectionsQuery.resultsSize() + " Sections available");
     }
-
 }

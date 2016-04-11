@@ -2,13 +2,17 @@ package uscheduler.ui;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
+import java.io.File;
 import java.util.Optional;
 
 /**
  * Created by aa8439 on 3/31/2016.
  */
-public class Popup {
+public class Popup{
 
     public static void display(Alert.AlertType type, String title, String message){
         Alert alert = new Alert(type, message, ButtonType.CLOSE);
@@ -29,5 +33,13 @@ public class Popup {
             alert.close();
             return false;
         }
+    }
+    public static File getSaveLocation(){
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("uScheduler - Save Results");
+        File defaultDirectory = new File("c:\\");
+        chooser.setInitialDirectory(defaultDirectory);
+        File selectedDirectory = chooser.showDialog(new Stage());
+        return selectedDirectory;
     }
 }

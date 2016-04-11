@@ -97,4 +97,5 @@ public class TopHBox extends HBox {
     void clearCampuses(){
         campuses.clear();
     }
+    int getCampusesSize() { return campuses.size(); }
 }
