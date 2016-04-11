@@ -299,6 +299,18 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
             //System.out.println(": " + txtCourseID.getText());
             try {
                 Importer.loadSections(t, cmbSubject.getValue(), txtCourseID.getText());
+                this.clearLists();
+                Courses.Course crs = Courses.get(this.cmbSubject.getValue(), this.txtCourseID.getText());
+                List<Sections.Section> sections = Sections.getByCourse1(t, crs, Sections.SEC_NUM_ASC);
+                System.out.println(sections.size());
+                this.setSections(sections);
+                this.setSessions(Sections.getDistinctSessions(sections));
+                this.formats.addAll(Sections.getDistinctMethods(sections));
+                this.listFormat.setItems(formats);
+                this.setInstructors(Sections.getDistinctInstructors(sections));
+                this.sectionsQuery.setCourse(crs);
+                this.sectionsQuery.setAvailability(SectionsQuery.AvailabilityArg.ANY);
+                this.resultsChanged(sectionsQuery);
             } catch (HTMLFormatException e) {
                 Popup.display(Alert.AlertType.ERROR, "uScheduler - HTMLFormatException", "It appears that KSU has changed their courses page." +
                         "There is a chance the data collected is corrupt, please contact uscheduler team for resolution.");
@@ -312,18 +324,6 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                         "course ID.  Please try entering another.  If you are sure the number you entered is correct," +
                         " please try entering it again.");
             }
-            this.clearLists();
-            Courses.Course crs = Courses.get(this.cmbSubject.getValue(), this.txtCourseID.getText());
-            List<Sections.Section> sections = Sections.getByCourse1(t, crs, Sections.SEC_NUM_ASC);
-            System.out.println(sections.size());
-            this.setSections(sections);
-            this.setSessions(Sections.getDistinctSessions(sections));
-            this.formats.addAll(Sections.getDistinctMethods(sections));
-            this.listFormat.setItems(formats);
-            this.setInstructors(Sections.getDistinctInstructors(sections));
-            this.sectionsQuery.setCourse(crs);
-            this.sectionsQuery.setAvailability(SectionsQuery.AvailabilityArg.ANY);
-            this.resultsChanged(sectionsQuery);
         }
     }
     void addDayTimeArg(SectionsQuery.DayTimeArg dta){
@@ -342,8 +342,9 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
     }
     boolean isCourseDisabled(){ return disabled; }
     SectionsQuery getSectionsQuery(){
-        return sectionsQuery;
+        return this.sectionsQuery;
     }
+    int getSectionsQueryResultCount() { return this.sectionsQuery.resultsSize(); }
 
     @Override
     public void resultsChanged(SectionsQuery sq) {

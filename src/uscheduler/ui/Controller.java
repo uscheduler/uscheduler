@@ -35,12 +35,6 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 
 public class Controller implements Initializable {
-    /*
-    Likewise, term and campuses will need to be updated through each hbox that has been created.
-    term being null, is valid, BUT should never be.
-    campuses if all are selected than empty list is okay
-     */
-
     @FXML
     TabPane tabPane;
     @FXML
@@ -219,9 +213,18 @@ public class Controller implements Initializable {
         cannot duplicate courses
         */
         //create 2 dimensional array where first dimesion is hboxes.size();
+        int numOfPossibleSchedules = hBoxes.get(0).getSectionsQueryResultCount();
+        for(int j = 1; j < hBoxes.size(); j++){
+            numOfPossibleSchedules = (numOfPossibleSchedules * hBoxes.get(j).getSectionsQueryResultCount());
+            System.out.println(numOfPossibleSchedules);
+        }
 
-        Sections.Section[][] courseSections = new Sections.Section[hBoxes.size()][];
-        for(int i = 0; i < hBoxes.size(); i++) {
+        if(numOfPossibleSchedules > POTENTIAL_MAX){
+            Popup.display(Alert.AlertType.ERROR, "uScheduler - Too Many Results", "Your current selections will result" +
+                    " in a huge number of schedules.  Please try restricting your selections a bit more.");
+        }else {
+            Sections.Section[][] courseSections = new Sections.Section[hBoxes.size()][];
+            for (int i = 0; i < hBoxes.size(); i++) {
                 courseSections[i] = hBoxes.get(i).getSectionsQuery().results2();
             }
             int schedulesGenerated = ScheduleGenerator.generate(courseSections);
@@ -232,6 +235,7 @@ public class Controller implements Initializable {
                 e1.printStackTrace();
             }
             //drawSchedules();
+        }
     }
 
 
