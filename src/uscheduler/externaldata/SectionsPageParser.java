@@ -97,7 +97,7 @@ public final class SectionsPageParser {
   
     private static LinkedList<HTMLSection> parseSectionsPage(Document pDoc, int pTermNum) throws HTMLFormatException, NoDataFoundException{
         
-        LinkedList<HTMLSection> sectionsLL = new LinkedList();
+        LinkedList<HTMLSection> sectionsLL = new LinkedList<>();
         HTMLSection htmlSec = new HTMLSection();
         
         //***********************Find the DataDisplayTable
@@ -129,13 +129,13 @@ public final class SectionsPageParser {
             throw new HTMLFormatException("Could not find any table rows inside the DataDisplayTable.");
         Iterator<Element> sectionTRsIterator = sectionTRs.iterator();
 
-        /* Begin to process Sections by iterating through the each table row of the Sections Found Table.
+        /* Begin to process Sections by iterating through each table row of the Sections Found Table.
         A new "Section" is found and will be processed each time a Section Table Header is found.
         When a Section Table Header is found, the previously processed Section will be added to the  sectionsLL Linked List.
         The first Section added to the LinkedList will be "dummy" section 
         in order to avoid having to check if the current Section being processed is the first Section encountered.
-        It is assumed a Section Table Header is found 
-        when the child of the current sectionTR is a th element instead of a td element.
+        It is assumed a Section Table Header is found when the child of the current sectionTR is a th element instead of a td element.
+        Once no more Section Table Headers are found, add the previously processed Section to the sectionsLL Linked List!!!
         */
         Elements sectionTRChildren;
         Element sectionTRChild;
@@ -154,9 +154,9 @@ public final class SectionsPageParser {
             
             //Test if current table row's child element is a table header element (i.e. is the Section Table Header)
             if (sectionTRChild.tagName().equals("th")){
-                //Add previously processed Section to the LinkedList and create new Section
+                //Add previously processed Section to the LinkedList and create new Section. First one added will be discarder at the end. 
                 sectionsLL.add(htmlSec);
-                htmlSec = new HTMLSection();
+                htmlSec = new HTMLSection();//last one created will be added at the end.
                 htmlSec.cTermNum = pTermNum;
                 
                 //Process the Section Table Header
@@ -179,9 +179,12 @@ public final class SectionsPageParser {
             } else
                 throw new HTMLFormatException("Child of table row of Sections Found Table is niether a td nor th element."); 
         }
-        //Remove the first "dummy" section from Sections
-        if (!sectionsLL.isEmpty()) 
+        //Remove the first "dummy" section from Sections and add the last one processed, but not added to LL.
+        if (!sectionsLL.isEmpty()) {
+            sectionsLL.add(htmlSec);
             sectionsLL.removeFirst();
+        }
+            
         
         //Return
         return sectionsLL;
@@ -510,7 +513,7 @@ public final class SectionsPageParser {
         private String cSession;
         private int cSeatsAvailable;
         private int cWaitlistAvailability;
-        private final LinkedList<HTMLMeetingPlaceTime> cMeetings = new LinkedList();
+        private final LinkedList<HTMLMeetingPlaceTime> cMeetings = new LinkedList<>();
         
         private HTMLSection(){};
         
@@ -611,8 +614,8 @@ public final class SectionsPageParser {
         private UDate cEndDate;
         private UTime cStartTime;
         private UTime cEndTime;
-        private final LinkedList<String> cInstructors = new LinkedList();
-        private final LinkedList<DayOfWeek> cDays = new LinkedList();
+        private final LinkedList<String> cInstructors = new LinkedList<>();
+        private final LinkedList<DayOfWeek> cDays = new LinkedList<>();
 
         private HTMLMeetingPlaceTime(){};
         

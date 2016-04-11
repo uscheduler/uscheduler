@@ -22,7 +22,7 @@ public final class Courses implements Table {
      /**
      * The HashMap to store Course objects using the course's pkey() as the key into the map. 
      */
-    private static final HashMap<String, Course> cCourses = new HashMap();
+    private static final HashMap<String, Course> cCourses = new HashMap<>();
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
      */
@@ -140,7 +140,7 @@ public final class Courses implements Table {
          */
         @Override
         public String toString(){
-            return "Course[subject=" + cSubject + ", courseNum=" + cCourseNum + "]";
+            return "[subject=" + cSubject + ", courseNum=" + cCourseNum + "]";
         }
         /**
          * @return the course's primary key value, which is subject().pkey() + "~" + courseNum()

@@ -68,7 +68,7 @@ public final class Schedules implements Table{
     /**
      * The TreeSet used to store Schedules sorted by "importance" and enforcing uniqueness using  the SAVED_MINUTES_ASC_UNIQUE Comparator.
      */
-    private static final TreeSet<Schedule> cSchedules = new TreeSet(SAVED_MINUTES_ASC_UNIQUE);
+    private static final TreeSet<Schedule> cSchedules = new TreeSet<>(SAVED_MINUTES_ASC_UNIQUE);
     
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
@@ -281,7 +281,7 @@ public final class Schedules implements Table{
             cSaved = false; //only to be set by Schedules class
             cDeleted = false; //only to be set by Schedules class
             cSections = new HashSet<>();
-            cSessionPartitions = new TreeSet(START_DATE_ASC);
+            cSessionPartitions = new TreeSet<>(START_DATE_ASC);
         }
         /**
          * Attempts to add the specified Section to this Schedule.<br>
@@ -320,8 +320,16 @@ public final class Schedules implements Table{
          * This should be called by the Schedules class right before adding this Schedule to the table and once no more additions of sections to this SChedule will be made.
          */
         private void buildSessionPartitions(){
-            TreeSet<UDate> datesTree = new TreeSet();
-            //For each section in this schedule, add the section's session's start date and end date to a TreeSet<UDate> to get the distinct <code>Session Partition</code> dates ordered.
+            /**
+             * Temp code to find bug
+             */
+            //boolean found
+            /**
+             * End temp code to find bug
+             */
+            TreeSet<UDate> datesTree = new TreeSet<>();
+            //For each section in this schedule, add the section's session's start date and end date 
+            //to a TreeSet<UDate> to get the distinct <code>Session Partition</code> dates ordered.
             for(Section sec: cSections){
                 datesTree.add(sec.session().startDate());
                 datesTree.add(sec.session().endDate());
@@ -398,7 +406,7 @@ public final class Schedules implements Table{
          */      
         @Override
         public String toString(){
-            return "Schedule[saved=" + cSaved + ", sections=" + cSections +  "]";
+            return "[saved=" + cSaved + ", sections=" + cSections +  "]";
         }
         /**
          * 
@@ -487,14 +495,14 @@ public final class Schedules implements Table{
             private final UDate cStartDate;
             private final UDate cEndDate;
             private final HashSet<Section>  cPartitionSections;
-            private final TreeMap<DayOfWeek, DayOfWeekPartition> cDayOfWeekPartitions;
+            private final TreeMap<DayOfWeek, MeetingDayPartition> cMeetingDayPartitions;
             
 
             private SessionPartition(UDate pStartDate, UDate pEndDate){
                 cStartDate = pStartDate;
                 cEndDate = pEndDate;
                 cPartitionSections = new HashSet();
-                cDayOfWeekPartitions = new TreeMap();
+                cMeetingDayPartitions = new TreeMap<>();
                 
                 for(Section sec: cSections)
                     //This Section is "in" this SessionPartition. Add its MeetingTimes to the map
@@ -502,9 +510,9 @@ public final class Schedules implements Table{
                         cPartitionSections.add(sec);
                         for(MeetingTime mt: sec.meetings1())
                             for(DayOfWeek dow : mt.days1()){
-                                DayOfWeekPartition foundSpmd = cDayOfWeekPartitions.get(dow);
+                                MeetingDayPartition foundSpmd = cMeetingDayPartitions.get(dow);
                                 if (foundSpmd == null)
-                                    cDayOfWeekPartitions.put(dow, new DayOfWeekPartition(dow, mt));
+                                    cMeetingDayPartitions.put(dow, new MeetingDayPartition(dow, mt));
                                 else
                                     foundSpmd.addMeetingTime(mt);
                             }
@@ -530,33 +538,43 @@ public final class Schedules implements Table{
              * 
              * @return a read-only Set view of this SessionPartition's sections.
              */
-            public Set<Section> sections(){
+            public Set<Section> sections1(){
                 return Collections.unmodifiableSet(cPartitionSections);
             }
             /**
-             * Returns a read-only {@link java.util.Set Set} view of this SessionPartition's cDayOfWeekPartitions.
+             * Returns a read-only {@link java.util.Set Set} view of this SessionPartition's cMeetingDayPartitions.
              * 
              * @return a read-only Set view of this SessionPartition's DayOfWeekPartitions.
              */
-            public Collection<DayOfWeekPartition> dayOfWeekPartitions(){
-                return Collections.unmodifiableCollection(cDayOfWeekPartitions.values());
+            public Collection<MeetingDayPartition> meetingDayPartitions1(){
+                return Collections.unmodifiableCollection(cMeetingDayPartitions.values());
             }
-            
+            /**
+             * Returns from this SessionPartition, the MeetingDayPartition with the specified DayOfWeek.
+             * 
+             * @param pDayOfWeek The DayOfWeek of the MeetingDayPartition to retrieve. Not Null.
+             * @return the MeetingDayPartition with the specified DayOfWeek or null if no such MeetingDayPartition exists.
+             */
+            public MeetingDayPartition getMeetingDayPartition(DayOfWeek pDayOfWeek){
+                if (pDayOfWeek == null)
+                    throw new IllegalArgumentException("Null pDayOfWeek argument.");  
+                return cMeetingDayPartitions.get(pDayOfWeek);
+            }
             public int lenght(){
                return cStartDate.daysTo(cEndDate);
             }
             public double weeks(){
                return lenght() / 7.0;
             }
-            public int daysOfWeekAtSchool(){
-               return cDayOfWeekPartitions.size();
+            public int daysPerWeekAtSchool(){
+               return cMeetingDayPartitions.size();
             }
             public double estDaysAtSchool(){
-               return daysOfWeekAtSchool() * weeks();
+               return daysPerWeekAtSchool() * weeks();
             }
             public double estMinutesAtSchool(){
                int sum = 0;
-               for(DayOfWeekPartition spmd : cDayOfWeekPartitions.values())
+               for(MeetingDayPartition spmd : cMeetingDayPartitions.values())
                    sum = sum + spmd.minutesAtSchool();
                return sum  * weeks();
             }
@@ -564,13 +582,14 @@ public final class Schedules implements Table{
             //***************************************Inner Class*********************************************
             //************************************************************************************************ 
             
-            public class DayOfWeekPartition{
+            public class MeetingDayPartition{
                 private final DayOfWeek cDayOfWeek;
                 /**
                  * Consists of all MeetingTimes of each Section in the SessionPartition for which mt.days().contains(cDayOfWeek) == true.
                  */
                 private final TreeSet<MeetingTime> cMeetingTimes;
-                
+
+                        
                 /**
                  * A Comparator of type MeetingTime that compares two MeetingTime objects based on the MeetingTime's startTime(), 
                  * which will be unique so long as, for each MeetingTime mt in the set:
@@ -585,14 +604,14 @@ public final class Schedules implements Table{
                         return mt2.startTime().minutesTo(mt1.startTime());
                     }
                 };  
-                private DayOfWeekPartition(DayOfWeek pDayOfWeek, MeetingTime pMeetingTime){
+                private MeetingDayPartition(DayOfWeek pDayOfWeek, MeetingTime pMeetingTime){
                     cDayOfWeek = pDayOfWeek;
-                    cMeetingTimes = new TreeSet(START_TIME_ASC);
+                    cMeetingTimes = new TreeSet<>(START_TIME_ASC);
                     cMeetingTimes.add(pMeetingTime);
                 }
                 
                 /**
-                 * Adds a MeetingTime pMeetingTime to this DayOfWeekPartition. It must be true that:
+                 * Adds a MeetingTime pMeetingTime to this MeetingDayPartition. It must be true that:
                  * 1) pMeetingTime.days().contains(cDayOfWeek) == true.
                  * 2) All MeetingTimes in cMeetingTimes are associated with Sections that are all part of the same valid (non-overlapping) schedule 
                  * 3) All MeetingTimes are associated with Sections belonging to the same <code>Session Partition</code>. 
@@ -605,34 +624,34 @@ public final class Schedules implements Table{
                 //***************************************Querying*********************************************
                 //************************************************************************************************ 
                 /**
-                 * @return the SessionPartition to which this DayOfWeekPartition belongs.
+                 * @return the SessionPartition to which this MeetingDayPartition belongs.
                  */
                 public SessionPartition sessionPartition() {
                     return SessionPartition.this;
                 }
                 /**
-                 * @return the DayOfWeek of this DayOfWeekPartition.
+                 * @return the DayOfWeek of this MeetingDayPartition.
                  */
                 public DayOfWeek dayOfWeek(){return cDayOfWeek;}
                 /**
-                 * Returns a read-only {@link java.util.Set Set} view of this DayOfWeekPartition's {@link uscheduler.internaldata.Sections.Section.MeetingTime meeting times}.
+                 * Returns a read-only {@link java.util.Set Set} view of this MeetingDayPartition's {@link uscheduler.internaldata.Sections.Section.MeetingTime meeting times}.
                  *
                  * <p>This method has less overhead than <tt>meetingTimes2</tt> and should be used when an iterable read-only set will accomplish what is needed.
                  * 
-                 * @return a read-only {@link java.util.Set Set} view of this DayOfWeekPartition's meeting times
+                 * @return a read-only {@link java.util.Set Set} view of this MeetingDayPartition's meeting times
                  */
                 public Set<MeetingTime> meetingTimes1(){
                     return Collections.unmodifiableSet(cMeetingTimes);
                 }
                 /**
-                 * Returns the first {@link uscheduler.internaldata.Sections.Section.MeetingTime#startTime()   startTime} in this DayOfWeekPartition.
-                 * @return the first startTime in this DayOfWeekPartition.
+                 * Returns the first {@link uscheduler.internaldata.Sections.Section.MeetingTime#startTime()   startTime} in this MeetingDayPartition.
+                 * @return the first startTime in this MeetingDayPartition.
                  */
                 public UTime minStart(){
                     return cMeetingTimes.first().startTime();
                 }
                 /**
-                 * @return the last {@link uscheduler.internaldata.Sections.Section.MeetingTime#endTime()  endTime} in this DayOfWeekPartition.
+                 * @return the last {@link uscheduler.internaldata.Sections.Section.MeetingTime#endTime()  endTime} in this MeetingDayPartition.
                  */
                 public UTime maxEnd(){
                     return cMeetingTimes.last().endTime();
@@ -643,7 +662,11 @@ public final class Schedules implements Table{
                 public int minutesAtSchool(){
                     return minStart().minutesTo(maxEnd());
                 }
-
+                
+                @Override
+                public String toString(){
+                    return "[dayOfWeek=" + cDayOfWeek + ", meetingTimes=" + cMeetingTimes + "]";
+                }
                 
             }
         }

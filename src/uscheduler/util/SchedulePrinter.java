@@ -135,7 +135,7 @@ public final class SchedulePrinter {
                     //print first MeetingTime and first Instructor on current / main line
                     schedulesOut.print('|'); schedulesOut.format("%1$-" + TIME_LEN + "s", (meetingTimes.length > 0) ? meetingTimes[0].startTime() : "");
                     schedulesOut.print('|'); schedulesOut.format("%1$-" + TIME_LEN + "s",  (meetingTimes.length > 0) ? meetingTimes[0].endTime(): "");
-                    schedulesOut.print('|'); schedulesOut.format("%1$-" + DAYS_LEN + "s", (meetingTimes.length > 0) ? meetingTimes[0].daysString(): "");                  
+                    schedulesOut.print('|'); schedulesOut.format("%1$-" + DAYS_LEN + "s", (meetingTimes.length > 0) ? meetingTimes[0].daysString(", "): "");                  
                     schedulesOut.print('|'); schedulesOut.format("%1$-" + INSTRUCTORS_LEN + "s", (instructors.length > 0) ? instructors[0].instructorName(): "");
                     schedulesOut.print('|');
                         
@@ -145,7 +145,7 @@ public final class SchedulePrinter {
                         schedulesOut.format("%1$" + (SECTION_LEN +1) + "s", "|");
                         schedulesOut.format("%1$-" + TIME_LEN + "s", (i < meetingTimes.length) ? meetingTimes[i].startTime() : "");
                         schedulesOut.print('|'); schedulesOut.format("%1$-" + TIME_LEN + "s",  (i < meetingTimes.length) ? meetingTimes[i].endTime(): "");
-                        schedulesOut.print('|'); schedulesOut.format("%1$-" + DAYS_LEN + "s", (i < meetingTimes.length) ? meetingTimes[i].daysString(): "");                  
+                        schedulesOut.print('|'); schedulesOut.format("%1$-" + DAYS_LEN + "s", (i < meetingTimes.length) ? meetingTimes[i].daysString(", "): "");                  
                         schedulesOut.print('|'); schedulesOut.format("%1$-" + INSTRUCTORS_LEN + "s", (i < instructors.length) ? instructors[i].instructorName(): "");
                         schedulesOut.print('|');
                         schedulesOut.println();

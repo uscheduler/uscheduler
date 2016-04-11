@@ -182,7 +182,7 @@ public final class Importer {
      */
     private static void loadSections(Terms.Term pTerm, LinkedList<SectionsPageParser.HTMLSection> pParsedSections){
         HashSet<Instructor> setInstructors = new HashSet<>();
-        LinkedList<UnattachedMeetingTime> llUnattachedMTs = new LinkedList();
+        LinkedList<UnattachedMeetingTime> llUnattachedMTs = new LinkedList<>();
         /**
          * Call loadSessions with the list of parsed Importer. 
          * loadSessions() will iterate through each parsed section, extracting the min start date and max end date of each of each section 
@@ -283,7 +283,7 @@ public final class Importer {
         //Loop through each section, testing the existence of Sessions in Sessions table, and collecting min start date and max end date for for Sessions that don't exist
         
         //Hash map to store the min start date and max end data associated with each session found.
-        HashMap<String, UDate[]> newSessionsMap = new HashMap();
+        HashMap<String, UDate[]> newSessionsMap = new HashMap<>();
         
         for(SectionsPageParser.HTMLSection hSec : pParsedHTMLSections){
 

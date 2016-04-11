@@ -37,14 +37,14 @@ public final class Sections implements Table{
     /**
      * The HashMap to store Section objects using the section's pkey() as the key into the map. 
      */
-    private static final HashMap<String, Section> cSections = new HashMap();
+    private static final HashMap<String, Section> cSections = new HashMap<>();
     
     /**
      * The HashMap to store the term+course index, in which the key of the index is: t.pkey() + "~" + c.pkey()
      * The key maps to an ArrayList, which stores all Sections for the given term and course.
      * This HashMap is used to provide quick access to all sections of a given term and course.
      */
-    private static final HashMap<String, ArrayList<Section>> cTermCourseIndex = new HashMap();
+    private static final HashMap<String, ArrayList<Section>> cTermCourseIndex = new HashMap<>();
     
     
     /**
@@ -99,7 +99,7 @@ public final class Sections implements Table{
             String key = pSession.term().pkey() + "~" + pCourse.pkey();
             ArrayList<Section> sectionsList = cTermCourseIndex.get(key);
             if (sectionsList == null){
-                sectionsList = new ArrayList();
+                sectionsList = new ArrayList<>();
                 sectionsList.add(temp);
                 cTermCourseIndex.put(key, sectionsList); 
             } else {
@@ -182,7 +182,7 @@ public final class Sections implements Table{
      * @return a List of distinct Instructors of the Sections in pSections, ordered by {@link uscheduler.internaldata.Instructors.Instructor#pkey()  Instructor.pkey()}
      */
     public static List<Instructor> getDistinctInstructors(List<Section> pSections){
-        TreeSet<Instructor> instructorsTree = new TreeSet(Instructors.PK_ASC);
+        TreeSet<Instructor> instructorsTree = new TreeSet<>(Instructors.PK_ASC);
         for (Section s: pSections)
             for(Instructor i : s.instructors1())
                 instructorsTree.add(i);
@@ -195,7 +195,7 @@ public final class Sections implements Table{
      * @return a List of distinct Sessions of the Sections in pSections,ordered by {@link uscheduler.internaldata.Sessions.Session#pkey() Session.pkey()}
      */
     public static List<Session> getDistinctSessions(List<Section> pSections){
-        TreeSet<Session> sessionsTree = new TreeSet(Sessions.PK_ASC);
+        TreeSet<Session> sessionsTree = new TreeSet<>(Sessions.PK_ASC);
         for (Section s: pSections)
             sessionsTree.add(s.session());
         return new ArrayList<>(sessionsTree);
@@ -207,7 +207,7 @@ public final class Sections implements Table{
      * @return a List of distinct InstructionalMethods of the Sections in pSections, ordered by the constant's declaration in {@link uscheduler.global.InstructionalMethod InstructionalMethod}
      */
     public static List<InstructionalMethod> getDistinctMethods(List<Section> pSections){
-        TreeSet<InstructionalMethod> imTree = new TreeSet();
+        TreeSet<InstructionalMethod> imTree = new TreeSet<>();
         for (Section s: pSections)
             imTree.add(s.instructionalMethod());
         return new ArrayList<>(imTree);
@@ -345,7 +345,7 @@ public final class Sections implements Table{
             cWaitlistAvailable = pWaitlistAvail;
             cCampus = pCampus;
             cInstructors = new HashSet<>();
-            cMeetings = new HashSet();
+            cMeetings = new HashSet<>();
         }
         /**
          * Constructs a new MeetingTime with the specified arguments and adds it to this Section's set of MeetingTimes.
@@ -501,10 +501,11 @@ public final class Sections implements Table{
         public Instructor[] instructors2(){
              return cInstructors.toArray(new Instructor[cInstructors.size()]);
         }
-        /**
-         * @return a String consisting of the name of each Instructor in this Section, separated by a comma and space.
+        /** Returns a String consisting of the name of each instructor in this Section, separated by the provided string. 
+         * @param pSeparator the String that will separate each Instructor in the returned String
+         * @return a String consisting of the name of each Instructor in this Section, separated by the string pSeperator.
          */
-        public String instructorsString(){
+        public String instructorsString(String pSeparator){
             if(this.cInstructors.isEmpty())
                 return "";
             
@@ -512,13 +513,13 @@ public final class Sections implements Table{
             Iterator<Instructor> instructorsIT = this.cInstructors.iterator();
             sb.append(instructorsIT.next().instructorName());
             while(instructorsIT.hasNext())
-                sb.append(", ").append(instructorsIT.next().instructorName());
+                sb.append(pSeparator).append(instructorsIT.next().instructorName());
             return sb.toString();
         }
         
         @Override
         public String toString(){
-            return "Section[session=" + cSession + ", course=" + cCourse + ", secNum=" + 
+            return "[session=" + cSession + ", course=" + cCourse + ", secNum=" + 
                     cSectionNumber + ", crn=" + cCrn + ", seatsAvail=" + cSeatsAvailable + 
                     ", waitlistAvail=" + cWaitlistAvailable + ", method=" + cInstructionalMethod + 
                     ", campus=" + cCampus + ", meetings=" + cMeetings + ", instructors=" + cInstructors + "]";
@@ -581,7 +582,7 @@ public final class Sections implements Table{
             if (pDays == null || pDays.isEmpty())
                 throw new IllegalArgumentException("A MeetingTime must have at least one day.");
             
-            cDays = new TreeSet();
+            cDays = new TreeSet<>();
             cStartTime = pStartT;
             cEndTime = pEndT;
             
@@ -662,9 +663,11 @@ public final class Sections implements Table{
              return cDays.toArray(new DayOfWeek[cDays.size()]);
         }
         /**
-         * @return a String consisting of the short display name of each DayOfWeek in this MeetingTime, separated by a comma and space.
+         * Returns a String consisting of the short display name of each DayOfWeek in this MeetingTime, separated by the provided string
+         * @param pSeparator the String that will separate each DayOfWeek in the returned String
+         * @return a String consisting of the short display name of each DayOfWeek in this MeetingTime, separated by pSeparator.
          */
-        public String daysString(){
+        public String daysString(String pSeparator){
             if(this.cDays.isEmpty())
                 return "";
             
@@ -672,9 +675,10 @@ public final class Sections implements Table{
             Iterator<DayOfWeek> daysIT = this.cDays.iterator();
             sb.append(daysIT.next().getDisplayName(TextStyle.SHORT, Locale.getDefault()));
             while(daysIT.hasNext())
-                sb.append(", ").append(daysIT.next().getDisplayName(TextStyle.SHORT, Locale.getDefault()));
+                sb.append(pSeparator).append(daysIT.next().getDisplayName(TextStyle.SHORT, Locale.getDefault()));
             return sb.toString();
-        }  
+        } 
+        
         /**
          * Returns true if this MeetingTime is equal to the provided object.
          * If obj is null or obj isn't an instance of MeetingTime, false is returned. 
@@ -730,7 +734,7 @@ public final class Sections implements Table{
          */
         @Override
         public String toString(){
-            return "MeetingTime[startTime=" + cStartTime + ", endTime=" + cEndTime + ", days=" + cDays + "]";
+            return "[startTime=" + cStartTime + ", endTime=" + cEndTime + ", days=" + cDays + "]";
         }
         /**
          * @return the MeetingTime's primary key value, which is Section.this.pkey() + "~" + cStartTime + "~" + cEndTime

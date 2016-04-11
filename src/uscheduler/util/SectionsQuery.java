@@ -101,15 +101,15 @@ public final class SectionsQuery implements DayTimeArgObserver{
     private Term cTerm = null;
     private Course cCourse = null;
     private List<Section> cBaseSections = new ArrayList<>(); //Eventually this will be set to a read-only list.
-    private HashMap<DayOfWeek, DayTimeArg> cDayTimeArgs = new HashMap();
-    private HashSet<Campus> cCampuses = new HashSet();
+    private HashMap<DayOfWeek, DayTimeArg> cDayTimeArgs = new HashMap<>();
+    private HashSet<Campus> cCampuses = new HashSet<>();
     private AvailabilityArg cAvailability = AvailabilityArg.ANY;
-    private HashSet<Section> cSections = new HashSet();
-    private HashSet<Session> cSessions = new HashSet();
-    private HashSet<InstructionalMethod> cInstructionalMethods = new HashSet();
-    private HashSet<Instructor> cInstructors = new HashSet();
-    private ArrayList<Section> cResults = new ArrayList();
-    private HashSet<SectionsQueryObserver> cObservers = new HashSet();
+    private HashSet<Section> cSections = new HashSet<>();
+    private HashSet<Session> cSessions = new HashSet<>();
+    private HashSet<InstructionalMethod> cInstructionalMethods = new HashSet<>();
+    private HashSet<Instructor> cInstructors = new HashSet<>();
+    private ArrayList<Section> cResults = new ArrayList<>();
+    private HashSet<SectionsQueryObserver> cObservers = new HashSet<>();
     
     //************************************************************************************************
     //***************************************Constructors*****************************************
@@ -139,7 +139,7 @@ public final class SectionsQuery implements DayTimeArgObserver{
         if (cTerm != null && cCourse != null)
             cBaseSections = Sections.getByCourse1(cTerm, cCourse);
         else
-            cBaseSections = new ArrayList();
+            cBaseSections = new ArrayList<>();
     }
     
     /**
@@ -461,12 +461,12 @@ public final class SectionsQuery implements DayTimeArgObserver{
     public void addCampus(Campus pCampus){
         if (pCampus == null)
             throw new IllegalArgumentException("Null pCampus argument.");
-       if(this.cCampuses.add(pCampus)){
-            if(this.cCampuses.size()==1)
+        if(this.cCampuses.add(pCampus)){
+            if(this.cCampuses.size()==1){
                //more restrictive (Was 0, now 1)
                if(this.restrictOnCampuses())
                    this.notifyObservers();
-            else
+            }else
                //less restrictive
                 this.lessRestriction();
        }
@@ -506,15 +506,17 @@ public final class SectionsQuery implements DayTimeArgObserver{
     public void addSection(Section pSection){
         if (pSection == null)
             throw new IllegalArgumentException("Null pSection argument.");
-       if(this.cSections.add(pSection)){
-            if(this.cSections.size()==1)
+        
+        if(this.cSections.add(pSection)){
+            if (this.cSections.size() == 1) {
                //more restrictive (Was 0, now 1)
-               if(this.restrictOnSections())
+               if (this.restrictOnSections()) 
                    this.notifyObservers();
-            else
-               //less restrictive
-                this.lessRestriction();
+            }else //less restrictive
+               this.lessRestriction();        
        }
+
+       
     }
     /**
     * Removes the <code>Section</code> from the Section Restriction List if in it, recalculates <code>results()</code>, and notifies each <code>SectionsQueryObserver</code> if <code>results()</code> changed.
@@ -553,11 +555,11 @@ public final class SectionsQuery implements DayTimeArgObserver{
         if (pSession == null)
             throw new IllegalArgumentException("Null pSession argument.");
        if(this.cSessions.add(pSession)){
-            if(this.cSessions.size()==1)
+            if(this.cSessions.size()==1){
                //more restrictive (Was 0, now 1)
                if(this.restrictOnSessions())
                    this.notifyObservers();
-            else
+            }else
                //less restrictive
                 this.lessRestriction();
        }
@@ -598,11 +600,11 @@ public final class SectionsQuery implements DayTimeArgObserver{
         if (pInstructionalMethod == null)
             throw new IllegalArgumentException("Null pInstructionalMethod argument.");
        if(this.cInstructionalMethods.add(pInstructionalMethod)){
-            if(this.cInstructionalMethods.size()==1)
+            if(this.cInstructionalMethods.size()==1){
                //more restrictive (Was 0, now 1)
                if(this.restrictOnInstructionalMethods())
                    this.notifyObservers();
-            else
+            }else
                //less restrictive
                 this.lessRestriction();
        }
@@ -644,11 +646,11 @@ public final class SectionsQuery implements DayTimeArgObserver{
         if (pInstructor == null)
             throw new IllegalArgumentException("Null pInstructor argument.");
        if(this.cInstructors.add(pInstructor)){
-            if(this.cInstructors.size()==1)
+            if(this.cInstructors.size()==1){
                //more restrictive (Was 0, now 1)
                if(this.restrictOnInstructors())
                    this.notifyObservers();
-            else
+            }else
                //less restrictive
                 this.lessRestriction();
        }
@@ -817,13 +819,10 @@ public final class SectionsQuery implements DayTimeArgObserver{
      */
     @Override
     public void maxEndChanged(DayTimeArg pDTA, UTime pOldMaxEnd) {
-        System.out.println("In maxEndChanged - Entered Method");
         if(pDTA.cMaxEnd == null || (pOldMaxEnd != null && pOldMaxEnd.lessThan(pDTA.cMaxEnd))) {
             //less restrictive
-            System.out.println("In maxEndChanged - Less Restriction");
             this.lessRestriction();
         }else {
-            System.out.println("In maxEndChanged - More Restriction");
             if (this.restrictOnDayTimeArgs())
                 this.notifyObservers();
         }
@@ -840,7 +839,7 @@ public final class SectionsQuery implements DayTimeArgObserver{
      */
     @Override
     public void minStartChanged(DayTimeArg pDTA, UTime pOldMinStart) {
-        if(pDTA.minStart() == null || (pOldMinStart != null && pDTA.cMinStart.lessThan(pOldMinStart)))
+        if(pDTA.cMinStart == null || (pOldMinStart != null && pDTA.cMinStart.lessThan(pOldMinStart)))
             //less restrictive
             this.lessRestriction();
         else 
@@ -907,7 +906,7 @@ public final class SectionsQuery implements DayTimeArgObserver{
         private final DayOfWeek cDay;
         private UTime cMinStart = null;
         private UTime cMaxEnd = null;
-        private final HashSet<DayTimeArgObserver> cObservers = new HashSet();
+        private final HashSet<DayTimeArgObserver> cObservers = new HashSet<>();
 
         //************************************************************************************************
         //***************************************Constructors*****************************************

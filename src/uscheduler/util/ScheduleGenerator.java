@@ -28,7 +28,7 @@ public final class ScheduleGenerator {
      */
     public static final int SCHEDULE_MAX = 10000;
 
-    private static final HashSet<ScheduleGeneratorObserver> cObservers = new HashSet();
+    private static final HashSet<ScheduleGeneratorObserver> cObservers = new HashSet<>();
     
     
     /**

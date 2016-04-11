@@ -22,7 +22,7 @@ public final class Sessions implements Table{
     /**
      * The HashMap to store Session objects using the session's pkey() as the key into the map. s.
      */
-    private static final HashMap<String, Session> cSessions = new HashMap();   
+    private static final HashMap<String, Session> cSessions = new HashMap<>();   
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
      */
@@ -194,7 +194,7 @@ public final class Sessions implements Table{
          */
         @Override
         public String toString(){
-            return "Session[term=" + cTerm + ", sessionName=" + cSessionName + ", startDate=" + cStartDate + ", endDate=" + cEndDate + "]";
+            return "[term=" + cTerm + ", sessionName=" + cSessionName + ", startDate=" + cStartDate + ", endDate=" + cEndDate + "]";
         }
         /**
          * @return the session's primary key value, which is term().pkey() + "~" + sessionName()
