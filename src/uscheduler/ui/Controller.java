@@ -19,6 +19,7 @@ import javafx.stage.DirectoryChooser;
 import uscheduler.externaldata.HTMLFormatException;
 import uscheduler.externaldata.NoDataFoundException;
 import uscheduler.internaldata.*;
+import uscheduler.ui.schedules.SchedulesTab;
 import uscheduler.util.Importer;
 import uscheduler.util.ScheduleGenerator;
 import uscheduler.util.SchedulePrinter;
@@ -61,7 +62,7 @@ public class Controller implements Initializable {
     private Font font1 = new Font(25);
     private Font font2 = new Font(15);
     private int POTENTIAL_MAX = 500;
-
+    private SchedulesTab newResultsTab = new SchedulesTab();
 
     @Override
     public void initialize(URL location, ResourceBundle resources){
@@ -74,6 +75,8 @@ public class Controller implements Initializable {
         handleDayCheckBoxAction();
         getTerms();
         setInitialDayTimeArg(0);
+        tabPane.getTabs().add(newResultsTab);
+        tabPane.getTabs().remove(resultsTab);
     }
     public void handleAddButton(ActionEvent e) {
         if(hBoxes.size() == 7){
@@ -207,7 +210,7 @@ public class Controller implements Initializable {
         });
     }
     public void handleGenerateSchedule(ActionEvent e) {
-        tabPane.getSelectionModel().select(resultsTab);
+        tabPane.getSelectionModel().select(newResultsTab);
         /*/Disable Generate Schedules button if any of the sectionsquery(s) are set to 0
         Check POTENTIAL_MAX
         cannot duplicate courses
@@ -228,12 +231,12 @@ public class Controller implements Initializable {
                 courseSections[i] = hBoxes.get(i).getSectionsQuery().results2();
             }
             int schedulesGenerated = ScheduleGenerator.generate(courseSections);
-            try {
+            /*try {
                 File saveLocation = Popup.getSaveLocation();
                 SchedulePrinter.printAll(new File(saveLocation + "\\uScheduler_Generated_Schedules.txt"), false);
             } catch (IOException e1) {
                 e1.printStackTrace();
-            }
+            }*/
             //drawSchedules();
         }
     }
