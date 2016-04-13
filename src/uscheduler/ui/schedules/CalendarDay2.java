@@ -10,48 +10,43 @@ import java.time.format.TextStyle;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
-import uscheduler.internaldata.Schedules.Schedule.SessionPartition;
+import javafx.geometry.HPos;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.text.Text;
 import uscheduler.internaldata.Schedules.Schedule.SessionPartition.MeetingDayPartition;
 import uscheduler.internaldata.Sections.Section.MeetingTime;
 
 /**
- *
+ * A GridPane with 1 column an 3 rows to display a MeetingDayPartition. 
+ * The top row displays DayaOfWeek and is a fixed size.
+ * The middle row displays start time, end time, and the course for each meeting time. The middle row has grow priority.
+ * The third and last row displays th summary total minutes and is a fixed size
  * @author Matt
  */
-public class CalendarDay extends VBox{
+public class CalendarDay2 extends GridPane{
     private final DayOfWeek cDayOfWeek;
     private MeetingDayPartition cMeetingDayPartition;
-    private final Label lblTopDay = new Label();
-    private final Label lblCenterDetail = new Label();
-    private final Label lblBottomSummary = new Label();
+    private final Text txtTopDay = new Text();
+    private final Text txtCenterDetail = new Text();
+    private final Text txtBottomSummary = new Text();
     
-    public CalendarDay(DayOfWeek pDayOfWeek, MeetingDayPartition pMeetingDayPartition){
+    public CalendarDay2(DayOfWeek pDayOfWeek, MeetingDayPartition pMeetingDayPartition){
         if (pDayOfWeek == null)
             throw new IllegalArgumentException("Null pDayOfWeek argument.");
         cDayOfWeek = pDayOfWeek;
         cMeetingDayPartition = pMeetingDayPartition;
         this.setTextValues();
-        
         //*********************
-
-        lblTopDay.setMaxWidth(Double.MAX_VALUE);
-        lblTopDay.setAlignment(Pos.CENTER);
-        //txtTop.setTextAlignment(TextAlignment.CENTER);
-        lblTopDay.setStyle("-fx-font-weight: bold; -fx-padding: 3 0 3 0;-fx-border-color: black; -fx-border-width: 1 1 1 1;");
-
-        lblCenterDetail.setWrapText(true);
-        lblCenterDetail.setMaxWidth(Double.MAX_VALUE);
-        lblCenterDetail.setStyle("-fx-padding: 2 2 2 2;-fx-border-color: black; -fx-border-width: 0 1 1 1;");
         
-        lblBottomSummary.setMaxWidth(Double.MAX_VALUE);
-        lblBottomSummary.setAlignment(Pos.CENTER);
-        lblBottomSummary.setStyle("-fx-border-color: black; -fx-border-width: 0 1 1 1;");
+        super.add(txtTopDay, 0, 0);
+        super.add(txtCenterDetail, 0, 1);
+        super.add(txtBottomSummary, 0, 2);
+        GridPane.setHalignment(txtTopDay, HPos.CENTER);
+        GridPane.setHgrow(txtCenterDetail, Priority.ALWAYS);
+     
+        //topText.setStyle("-fx-font-weight: bold; -fx-padding: 3 0 3 0");
 
-        super.getChildren().addAll(lblTopDay, lblCenterDetail, lblBottomSummary);
-        super.setMinWidth(275);
     }
     public void setMeetingDayPartition(MeetingDayPartition pMeetingDayPartition){
         cMeetingDayPartition = pMeetingDayPartition;
@@ -59,13 +54,13 @@ public class CalendarDay extends VBox{
     }
 
     private void setTextValues(){
-        lblTopDay.setText(cDayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault()));
+        txtTopDay.setText(cDayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault()));
         
         if(cMeetingDayPartition == null){
-            lblCenterDetail.setText(null);
-            lblBottomSummary.setText(null);
+            txtCenterDetail.setText(null);
+            txtBottomSummary.setText(null);
         } else {
-            lblBottomSummary.setText(Integer.toString(cMeetingDayPartition.minutesAtSchool()));
+            txtBottomSummary.setText(Integer.toString(cMeetingDayPartition.minutesAtSchool()));
             Set<MeetingTime> meetingTimes = cMeetingDayPartition.meetingTimes1();
             //if(meetingTimes.isEmpty()) //This should never happen!
             //    return "";
@@ -93,13 +88,7 @@ public class CalendarDay extends VBox{
                 .append(" ")
                 .append(mt.section().course().courseNum());           
             }
-            lblCenterDetail.setText(sb.toString());                
-        }
-            
-            
-            
-            
-            
-            
+            txtCenterDetail.setText(sb.toString());                
+        }       
     }
 }

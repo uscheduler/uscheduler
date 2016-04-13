@@ -68,7 +68,7 @@ public class DetailTable extends TableView<SectionRow>{
  
         
         TableColumn<SectionRow,String> cSubjectCol = new TableColumn<>("Subj.");
-        cSubjectCol.setPrefWidth(52);
+        cSubjectCol.setPrefWidth(32);
         cSubjectCol.setCellValueFactory(new PropertyValueFactory<SectionRow, String>("subjectAbbr"));
         cSubjectCol.setResizable(false);
         cSubjectCol.setSortable(false);

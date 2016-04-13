@@ -12,22 +12,32 @@ import uscheduler.internaldata.Schedules;
 import uscheduler.util.ScheduleGeneratorObserver;
 
 /**
- *
- * @author Matt
+ * The ScrollPane to house the view of Schedules. 
+ * Each Schedule's view is provided by the ScheduleContainer class, thus this ScrollPane houses ScheduleContainer objects (in a single VBox).
+ * This class implements ScheduleGeneratorObserver. 
+ * Users of this class will add this class as an observer the ScheduleGenerator 
+ * and this class will respond to the ScheduleGenerator.generate method by updating the view of schedules.
+ * @author Matt Matt Bush
  */
 public class SchedulesScrollPane extends ScrollPane implements ScheduleGeneratorObserver, ScheduleDeleteRequestListener{
     private final VBox cSchedulesVBox = new VBox();
     
     public SchedulesScrollPane(){
         
-        this.buildSchedules();
-        
+        /**
+         * "If true and if the contained node [cSchedulesVBox] is a Resizable, 
+         * then the node [cSchedulesVBox] will be kept resized to match the width of the ScrollPane's viewport. 
+         * If the contained node [cSchedulesVBox] is not a Resizable, this value is ignored."
+         */
         super.setFitToWidth(true);
         super.setFitToHeight(true);
         super.setContent(cSchedulesVBox);
-        //sp.setHbarPolicy(ScrollBarPolicy.NEVER);
         super.setVbarPolicy(ScrollBarPolicy.ALWAYS);
         
+        //
+        cSchedulesVBox.setSpacing(30.0);
+        
+        this.buildSchedules();
         //ScheduleGenerator.addObserver(this);
     }
     private void buildSchedules(){

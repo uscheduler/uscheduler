@@ -149,6 +149,26 @@ public final class Schedules implements Table{
             cSchedules.add(pSchedule);            
         }
     }
+    /**
+     * Marks the specified schedule as so that <code>{@link uscheduler.internaldata.Schedules.Schedule#isSaved()  isSaved()} == false</code>.
+     * If at the time of the call, <code>{@link uscheduler.internaldata.Schedules.Schedule#isSaved()  isSaved()} == false</code>, then no change is made to the Schedule.
+     * Otherwise, the schedule's position will change in the Schedule's table as a result of setting the schedule to un-saved..
+     * @param pSchedule the schedule to mark as "un-saved". Not null and <code>{@link uscheduler.internaldata.Schedules.Schedule#isDeleted()  isDeleted()} == false</code>.
+     * @throws IllegalArgumentException if pSchedule == null || pSchedule.isDeleted() == true
+     */
+    public static void unSave(Schedule pSchedule){
+        /**
+         * Must first remove pScheduled from cSchedules TreeSet, then change cSaved, then add back to cSchedules TreeSet.
+         * This is because schedule.cSaved is used in the compare method used in the Comparator provided to the cSchedules TreeSet
+         */
+        if (pSchedule == null || pSchedule.isDeleted())
+            throw new IllegalArgumentException("Invalid pSchedule argument");
+        if (pSchedule.cSaved){
+            cSchedules.remove(pSchedule);
+            pSchedule.cSaved = false;
+            cSchedules.add(pSchedule);            
+        }
+    }
     
     /**
      * Deletes from the Schedules table, the specified Schedule.
@@ -163,8 +183,10 @@ public final class Schedules implements Table{
     }
     /**
      * Deletes from the Schedules table, all Schedules s such that <code>{@link uscheduler.internaldata.Schedules.Schedule#isSaved()  isSaved()} == false</code>.
+     * @return the number of unsaved schedules deleted.
      */
-    public static void deleteUnsaved(){
+    public static int deleteUnsaved(){
+        int numDeleted = 0;
         Iterator<Schedule> it = cSchedules.iterator();
         Schedule s;        
         while (it.hasNext())
@@ -173,8 +195,10 @@ public final class Schedules implements Table{
           if (!s.isSaved()){
               it.remove();
               s.cDeleted = true;
+              numDeleted++;
           }
         }
+        return numDeleted;
     }
 
 
