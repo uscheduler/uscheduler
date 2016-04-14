@@ -5,7 +5,6 @@ import javafx.fxml.FXML;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -15,14 +14,12 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
-import javafx.stage.DirectoryChooser;
 import uscheduler.externaldata.HTMLFormatException;
 import uscheduler.externaldata.NoDataFoundException;
 import uscheduler.internaldata.*;
 import uscheduler.ui.schedules.SchedulesTab;
 import uscheduler.util.Importer;
 import uscheduler.util.ScheduleGenerator;
-import uscheduler.util.SchedulePrinter;
 import java.util.ArrayList;
 
 
@@ -49,8 +46,6 @@ public class Controller implements Initializable {
     @FXML
     ListView listCourse;
     @FXML
-    Label displayText;
-    @FXML
     GridPane grid;
 
     private TopHBox top = new TopHBox();
@@ -61,7 +56,7 @@ public class Controller implements Initializable {
     private ArrayList<Subjects.Subject> subjects;
     private Font font1 = new Font(25);
     private Font font2 = new Font(15);
-    private int POTENTIAL_MAX = 500;
+    private int POTENTIAL_MAX = 100000;
     private SchedulesTab newResultsTab = new SchedulesTab();
 
     @Override
@@ -225,19 +220,23 @@ public class Controller implements Initializable {
         if(numOfPossibleSchedules > POTENTIAL_MAX){
             Popup.display(Alert.AlertType.ERROR, "uScheduler - Too Many Results", "Your current selections will result" +
                     " in a huge number of schedules.  Please try restricting your selections a bit more.");
+        }else if(numOfPossibleSchedules == 0) {
+            Popup.display(Alert.AlertType.ERROR, "uScheduler - Zero Sections", "One of the courses you have entered" +
+                    " has zero possible sections. Please try adjusting your criteria and try again.");
         }else {
             Sections.Section[][] courseSections = new Sections.Section[hBoxes.size()][];
             for (int i = 0; i < hBoxes.size(); i++) {
                 courseSections[i] = hBoxes.get(i).getSectionsQuery().results2();
             }
-            int schedulesGenerated = ScheduleGenerator.generate(courseSections);
+
+                int schedulesGenerated = ScheduleGenerator.generate(courseSections);
             /*try {
                 File saveLocation = Popup.getSaveLocation();
                 SchedulePrinter.printAll(new File(saveLocation + "\\uScheduler_Generated_Schedules.txt"), false);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }*/
-            //drawSchedules();
+                //drawSchedules();
         }
     }
 
