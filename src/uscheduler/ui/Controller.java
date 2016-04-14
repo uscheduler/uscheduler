@@ -162,7 +162,9 @@ public class Controller implements Initializable {
                     hBoxes.clear();
                     hBoxList.clear();
                 }else{
-                    top.cmbTerm.setValue(oldValue);
+
+                    //top.cmbTerm.setValue(oldValue);
+
                 }
             }
         });

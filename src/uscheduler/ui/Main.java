@@ -16,6 +16,7 @@ public class Main extends Application {
         Controller myController = loader.getController();
         primaryStage.setTitle("uScheduler - Kennesaw's SMART Student Scheduler");
         primaryStage.setScene(new Scene(root, 1355, 735));
+        //primaryStage.getScene().getStylesheets().add("uscheduler/layoutstyles.css");
         primaryStage.getIcons().add(new Image("uscheduler/uSchedulerIcon.png"));
         primaryStage.show();
     }
