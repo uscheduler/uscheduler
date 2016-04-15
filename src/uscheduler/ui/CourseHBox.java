@@ -159,7 +159,11 @@ public class CourseHBox extends HBox implements SectionsQueryObserver{
                 textAction(t);
             }
         });
-        txtCourseID.setOnAction( e -> textAction(t) );
+        txtCourseID.setOnAction( e -> {
+            e.consume();
+            textAction(t);
+            txtCourseID.deselect();
+        } );
     }
     private void setSections(List<Sections.Section> s){
         this.sections.addAll(s);

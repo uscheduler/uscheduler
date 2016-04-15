@@ -1,6 +1,9 @@
 package uscheduler.ui;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,6 +14,7 @@ import java.util.ResourceBundle;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.ListView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
@@ -58,6 +62,24 @@ public class Controller implements Initializable {
     private Font font2 = new Font(15);
     private int POTENTIAL_MAX = 100000;
     private SchedulesTab newResultsTab = new SchedulesTab();
+    private final ChangeListener<Terms.Term> termChangeListener = new ChangeListener<Terms.Term>()
+    {
+        @Override
+        public void changed(ObservableValue<? extends Terms.Term> observable, Terms.Term oldValue, Terms.Term newValue){
+            if(oldValue != null) {
+                if (Popup.userAccept("uScheduler - Warning", "By changing the term all of your data below will be removed. " +
+                        "Do you still wish to proceed?")){
+                    hBoxes.clear();
+                    hBoxList.clear();
+                }else{
+                    top.cmbTerm.getSelectionModel().selectedItemProperty().removeListener(termChangeListener);
+                    top.cmbTerm.setValue(oldValue);
+                    top.cmbTerm.getSelectionModel().selectedItemProperty().addListener(termChangeListener);
+                }
+            }
+        }
+    };
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources){
@@ -156,18 +178,7 @@ public class Controller implements Initializable {
                 c.setTerm(top.cmbTerm.getValue());
             }
         });
-        top.cmbTerm.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
-            if(oldValue != null){
-                if(Popup.userAccept("uScheduler", "By changing the term all your existing data will be lost, do you still wish to proceed?")){
-                    hBoxes.clear();
-                    hBoxList.clear();
-                }else{
-
-                    //top.cmbTerm.setValue(oldValue);
-
-                }
-            }
-        });
+        top.cmbTerm.getSelectionModel().selectedItemProperty().addListener(termChangeListener);
     }
     private void setSubjectsAndCampuses(){
         campuses = Campuses.getAll(Campuses.PK_ASC);

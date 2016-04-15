@@ -15,7 +15,7 @@ import java.util.Optional;
 public class Popup{
 
     public static void display(Alert.AlertType type, String title, String message){
-        Alert alert = new Alert(type, message, ButtonType.CANCEL);
+        Alert alert = new Alert(type, message, ButtonType.CLOSE);
         alert.setTitle(title);
         alert.showAndWait();
     }

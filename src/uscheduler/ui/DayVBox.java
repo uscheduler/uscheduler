@@ -98,4 +98,5 @@ public class DayVBox extends VBox{
         cmbTimeBefore.setDisable(b);
         cmbTimeAfter.setDisable(b);
     }
+    DayOfWeek getDay(){ return day; }
 }
