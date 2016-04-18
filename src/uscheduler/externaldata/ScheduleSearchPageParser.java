@@ -134,8 +134,8 @@ public class ScheduleSearchPageParser {
      * @author Matt Bush
      */
     public static class ScheduleSearchPageResult {
-        private final LinkedList<HTMLSubject> cSubjects = new LinkedList();
-        private final LinkedList<String> cCampuses = new LinkedList();
+        private final LinkedList<HTMLSubject> cSubjects = new LinkedList<>();
+        private final LinkedList<String> cCampuses = new LinkedList<>();
         
         private ScheduleSearchPageResult(){};
         /**

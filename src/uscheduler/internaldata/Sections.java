@@ -8,12 +8,12 @@ package uscheduler.internaldata;
 import java.time.DayOfWeek;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -37,14 +37,14 @@ public final class Sections implements Table{
     /**
      * The HashMap to store Section objects using the section's pkey() as the key into the map. 
      */
-    private static final HashMap<String, Section> cSections = new HashMap();
+    private static final HashMap<String, Section> cSections = new HashMap<>();
     
     /**
      * The HashMap to store the term+course index, in which the key of the index is: t.pkey() + "~" + c.pkey()
      * The key maps to an ArrayList, which stores all Sections for the given term and course.
      * This HashMap is used to provide quick access to all sections of a given term and course.
      */
-    private static final HashMap<String, ArrayList<Section>> cTermCourseIndex = new HashMap();
+    private static final HashMap<String, ArrayList<Section>> cTermCourseIndex = new HashMap<>();
     
     
     /**
@@ -60,27 +60,37 @@ public final class Sections implements Table{
     /**
      * Adds a new Section to the Sections table.
      * <p>This method first checks to see if a Section already exists in the Sections table with the Session specified by pSession and the crn specified by pCrn. 
-     * If so, this method returns the already existing Session. 
-     * Otherwise, this method creates a new Course with the provided arguments,
+     * If so, this method returns the already existing Session and makes no modifications to the existing section.
+     * Otherwise, this method creates a new Section with the provided arguments,
      * adds the newly created Section to the Table, and returns the newly created Section.
      * 
      * @param pCrn the crn of the Section to construct
-     * @param pSession the Session of the Section to construct
-     * @param pCourse the Course of the Section to construct
+     * @param pSession the Session of the Section to construct. Not null.
+     * @param pCourse the Course of the Section to construct. Not null.
      * @param pCampus the Campus of the Section to construct
-     * @param pSectionNum the section number of the Section to construct
-     * @param pIMethod the instructional method of the Section to construct
+     * @param pSectionNum the section number of the Section to construct. Not null.
+     * @param pIMethod the instructional method of the Section to construct. Not null.
      * @param pSeatsAvail the seats available of the Section to construct
      * @param pWaitlistAvail the waitlist available of the Section to construct
+     * @param pInstructors the set of the instructors of the section to construct. Can be null, but must not contain nulls.
+     * @param pMeetings the collection of UnattachedMeetingTimes that specify the section's meeting times. Can be null, but must not contain nulls.
      * @return the newly added Section if no such Section already existed, otherwise returns the already existing Section.
      * @throws IllegalArgumentException if pSession, pCourse,  pSectionNum, or pIMethod is null.
      * @throws IllegalArgumentException if pSeatsAvail or pWaitlistAvail is less than zero.
      */
-    public static Section add(int pCrn, Session pSession, Course pCourse, Campus pCampus, String pSectionNum, InstructionalMethod pIMethod, int pSeatsAvail, int pWaitlistAvail){
-         
+    public static Section add(int pCrn, Session pSession, Course pCourse, Campus pCampus, String pSectionNum, InstructionalMethod pIMethod, 
+            int pSeatsAvail, int pWaitlistAvail, Set<Instructor> pInstructors, Collection<UnattachedMeetingTime> pMeetings){
+        
         Section temp = new Section(pCrn,  pSession,  pCourse,  pCampus,  pSectionNum,  pIMethod,  pSeatsAvail,  pWaitlistAvail);
         Section found = cSections.get(temp.pkey());
         if (found == null){
+            //Add the provided instructors and meeting times to the new section
+            if(pInstructors != null)
+                for(Instructor inst : pInstructors)
+                    temp.addInstructor(inst);
+            if(pMeetings != null)
+                for(UnattachedMeetingTime mtUnattached : pMeetings)
+                    temp.addMeetingTime(mtUnattached.cStartTime, mtUnattached.cEndTime, mtUnattached.cDays);
             
             //Add the new section to the "table"
             cSections.put(temp.pkey(), temp);
@@ -89,7 +99,7 @@ public final class Sections implements Table{
             String key = pSession.term().pkey() + "~" + pCourse.pkey();
             ArrayList<Section> sectionsList = cTermCourseIndex.get(key);
             if (sectionsList == null){
-                sectionsList = new ArrayList();
+                sectionsList = new ArrayList<>();
                 sectionsList.add(temp);
                 cTermCourseIndex.put(key, sectionsList); 
             } else {
@@ -123,34 +133,15 @@ public final class Sections implements Table{
         return cSections.get(pSession.pkey() + "~" + pCrn);
     }
 
-    /**
-     * Returns a read-only list of all Sections in no particular order. This method is mostly for debugging and probably has no use in finished product.
-     * 
-     * @return A read-only list of all Sections in no particular order.
-     */
-    public static ArrayList<Section> getAll(){
-        return (ArrayList<Section>) Collections.unmodifiableList((List<Section>) cSections.values());
-    }
-    /**
-     * Returns from the Sections table, a new ArrayList of all sections from the specified Term and Course.
-     * <br>
-     * @param pTerm the Term of the sections to return. Not null.
-     * @param pCourse the Course of the sections to return. Not null.
-     * @return a new Arraylist of all sections whose Terms is pTerm and whose Course is pCourse.
-     */
-    public static ArrayList<Section> getByCourseCopy(Term pTerm, Course pCourse){
-        if (pTerm == null)
-            throw new IllegalArgumentException("Null pTerm Argument.");
-        if (pCourse == null)
-            throw new IllegalArgumentException("Null pCourse Argument.");
-        
-        ArrayList<Section> sectionsList = cTermCourseIndex.get(pTerm.pkey() + "~" + pCourse.pkey());
-        if (sectionsList == null){
-            return new ArrayList<>();
-        } else {
-            return new ArrayList<>(sectionsList);
-        } 
-    }    
+//    /**
+//     * Returns a read-only list of all Sections in no particular order. This method is mostly for debugging and probably has no use in finished product.
+//     * 
+//     * @return A read-only list of all Sections in no particular order.
+//     */
+//    public static ArrayList<Section> getAll(){
+//        return (ArrayList<Section>) Collections.unmodifiableList((List<Section>) cSections.values());
+//    }
+   
     /**
      * Returns from the Sections table, a read-only list of all sections from the specified Term and Course.
      * <br>
@@ -158,13 +149,9 @@ public final class Sections implements Table{
      * @param pCourse the Course of the sections to return. Not null.
      * @return a read-only list of all sections whose Terms is pTerm and whose Course is pCourse.
      */
-    public static List<Section> getByCourseReadOnly(Term pTerm, Course pCourse){
-        if (pTerm == null)
-            throw new IllegalArgumentException("Null pTerm Argument.");
-        if (pCourse == null)
-            throw new IllegalArgumentException("Null pCourse Argument.");
+    public static List<Section> getByCourse1(Term pTerm, Course pCourse){
         
-        ArrayList<Section> sectionsList = cTermCourseIndex.get(pTerm.pkey() + "~" + pCourse.pkey());
+        List<Section> sectionsList = cTermCourseIndex.get(pTerm.pkey() + "~" + pCourse.pkey());
         if (sectionsList == null){
             return Collections.unmodifiableList(new ArrayList<Section>());
         } else {
@@ -179,12 +166,7 @@ public final class Sections implements Table{
      * @param pOrder a Comparator of type Section that specifies how to order the returned list. Not null.
      * @return a read-only list of all sections from the specified whose Terms is pTerm and whose Course is pCourse, in the order specified by pOrder.
      */
-    public static List<Section> getByCourseReadOnly(Term pTerm, Course pCourse, Comparator<Section> pOrder){
-        if (pTerm == null)
-            throw new IllegalArgumentException("Null pTerm Argument.");
-        if (pCourse == null)
-            throw new IllegalArgumentException("Null pCourse Argument.");
-        
+    public static List<Section> getByCourse1(Term pTerm, Course pCourse, Comparator<Section> pOrder){
         ArrayList<Section> sectionsList = cTermCourseIndex.get(pTerm.pkey() + "~" + pCourse.pkey());
         if (sectionsList == null){
             return Collections.unmodifiableList(new ArrayList<Section>());
@@ -194,38 +176,38 @@ public final class Sections implements Table{
         } 
     }
     /**
-     * From a List of Sections, returns a LinkedList of distinct Instructors of the Sections in the List, ordered by instructor.pkey().
+     * From a List of Sections, returns a LinkedList of distinct Instructors of the Sections in the List, ordered by ordered by {@link uscheduler.internaldata.Instructors.Instructor#pkey()  Instructor.pkey()}
      * 
      * @param pSections the list of non null Sections from which to extract distinct Instructors. Not null.
-     * @return a List of distinct Instructors of the Sections in pSections, ordered by instructor.pkey().
+     * @return a List of distinct Instructors of the Sections in pSections, ordered by {@link uscheduler.internaldata.Instructors.Instructor#pkey()  Instructor.pkey()}
      */
-    public static ArrayList<Instructor> getDistinctInstructors(List<Section> pSections){
-        TreeSet<Instructor> instructorsTree = new TreeSet(Instructors.PK_ASC);
+    public static List<Instructor> getDistinctInstructors(List<Section> pSections){
+        TreeSet<Instructor> instructorsTree = new TreeSet<>(Instructors.PK_ASC);
         for (Section s: pSections)
-            for(Instructor i : s.instructors())
+            for(Instructor i : s.instructors1())
                 instructorsTree.add(i);
         return new ArrayList<>(instructorsTree);
     }
     /**
-     * From a List of Sections, returns a List of distinct Sessions of the Sections in the List, ordered by session.pkey().
+     * From a List of Sections, returns a List of distinct Sessions of the Sections in the List, ordered by {@link uscheduler.internaldata.Sessions.Session#pkey() Session.pkey()}
      * 
      * @param pSections the list of non null Sections from which to extract distinct Sessions. Not null.
-     * @return a List of distinct Sessions of the Sections in pSections, ordered by session.pkey().
+     * @return a List of distinct Sessions of the Sections in pSections,ordered by {@link uscheduler.internaldata.Sessions.Session#pkey() Session.pkey()}
      */
-    public static ArrayList<Session> getDistinctSessions(List<Section> pSections){
-        TreeSet<Session> sessionsTree = new TreeSet(Sessions.PK_ASC);
+    public static List<Session> getDistinctSessions(List<Section> pSections){
+        TreeSet<Session> sessionsTree = new TreeSet<>(Sessions.PK_ASC);
         for (Section s: pSections)
             sessionsTree.add(s.session());
         return new ArrayList<>(sessionsTree);
     }
     /**
-     * From a List of Sections, returns a List of distinct InstructionalMethods of the Sections in the List, ordered by ???
+     * From a List of Sections, returns a List of distinct InstructionalMethods of the Sections in the List, ordered by the constant's  declaration in {@link uscheduler.global.InstructionalMethod InstructionalMethod}
      * 
      * @param pSections the list of non null Sections from which to extract distinct InstructionalMethods. Not null.
-     * @return a List of distinct InstructionalMethods of the Sections in pSections, ordered by the constant's definition in {@link uscheduler.global.InstructionalMethod InstructionalMethod}
+     * @return a List of distinct InstructionalMethods of the Sections in pSections, ordered by the constant's declaration in {@link uscheduler.global.InstructionalMethod InstructionalMethod}
      */
-    public static ArrayList<InstructionalMethod> getDistinctMethods(List<Section> pSections){
-        TreeSet<InstructionalMethod> imTree = new TreeSet();
+    public static List<InstructionalMethod> getDistinctMethods(List<Section> pSections){
+        TreeSet<InstructionalMethod> imTree = new TreeSet<>();
         for (Section s: pSections)
             imTree.add(s.instructionalMethod());
         return new ArrayList<>(imTree);
@@ -248,6 +230,48 @@ public final class Sections implements Table{
                 return s1.cSectionNumber.compareTo(s2.cSectionNumber);
             }
     }; 
+    /**
+     * A Comparator of type Section that compares two Section objects based on <code>Section.course().subject().subjectAbbr()</code>
+     * This Comparator will allow ordering a Collection of Section objects by sectionNumber() ascending.
+     * <br><br>
+     * <b>Note:</b> This Comparator is NOT consistent with equals() in the sense that this Comparator's compare method is performed on a  <code>Section.course().subject().subjectAbbr()</code>, 
+     * which is not the primary key of a Section. Thus the compare method will return 0 when performed on two Section objects with the same course, 
+     * even thought they are two different Sections. Thus, <b> DO NOT </b> use this Comparator in a TreeSet.
+     */
+    public static final Comparator<Section> SUBJ_ABBR_ASC = new Comparator<Section>() {
+            @Override
+            public int compare(Section s1, Section s2) {
+                return s1.course().subject().subjectAbbr().compareTo(s2.course().subject().subjectAbbr());
+            }
+    }; 
+    
+    //************************************************************************************************
+    //***************************************Nested Helper Class**************************************
+    //************************************************************************************************
+    /**
+     * A class used to contain MeetingTime arguments in a call to 
+     * {@link uscheduler.internaldata.Sections#add(int, uscheduler.internaldata.Sessions.Session, uscheduler.internaldata.Courses.Course, uscheduler.internaldata.Campuses.Campus, java.lang.String, uscheduler.global.InstructionalMethod, int, int, java.util.Set, java.util.Collection)   Sections.add()}.
+     * This class is needed so that all data associated with a section, including its meeting time's can be specified in a Sections.add() method call. 
+     * Without this class, either:
+     * <br>1) The Sections.add() method would not provide a parameter to specify a section's meeting times, 
+     * which would then require that the {@link uscheduler.internaldata.Sections.Section Section} provide a public addMeetingTime() method, 
+     * which would then allow the modification of a section's meeting time's when that section is potentially in a {@link uscheduler.internaldata.Schedules.Schedule Schedule} 
+     * in which the modification would make the Schedule invalid by containing overlapping sections.
+     * <br>2) The Sections.add() method would provide a parameter to specify a section's meeting times in terms of a regular {@link uscheduler.internaldata.Sections.Section.MeetingTime MeetingTime}, 
+     * which would then break the contract that every reference to a {@link uscheduler.internaldata.Sections.Section Section} by a class outside of the {@link uscheduler.internaldata.Sections Sections} class is a reference to a Section that is in the Sections table.
+     * 
+     */
+    public static class UnattachedMeetingTime{
+        private final UTime cStartTime;
+        private final UTime cEndTime;
+        private final Collection<DayOfWeek> cDays;
+        public UnattachedMeetingTime(UTime pStartTime, UTime pEndTime, Collection<DayOfWeek> pDays){
+            cStartTime = pStartTime;
+            cEndTime = pEndTime;
+            cDays = pDays;
+        }
+        
+    }
     //************************************************************************************************
     //***************************************Record Class*********************************************
     //************************************************************************************************  
@@ -278,6 +302,10 @@ public final class Sections implements Table{
          */
         private final HashSet<MeetingTime> cMeetings; //cMeetings May contain zero MeetingTimes, but it must NOT be null
 
+        //************************************************************************************************
+        //***************************************Data Modification*****************************************
+        //************************************************************************************************
+   
         /**
          * Constructs a new section with the specified arguments.
          * 
@@ -317,7 +345,7 @@ public final class Sections implements Table{
             cWaitlistAvailable = pWaitlistAvail;
             cCampus = pCampus;
             cInstructors = new HashSet<>();
-            cMeetings = new HashSet();
+            cMeetings = new HashSet<>();
         }
         /**
          * Constructs a new MeetingTime with the specified arguments and adds it to this Section's set of MeetingTimes.
@@ -329,20 +357,19 @@ public final class Sections implements Table{
          * A reference to the already existing MeetingTime is then returned and no new MeetingTime gets added to this Section's set of MeetingTimes.
          * <br>If NO such a Meeting time already exists, then adds the constructed MeetingTime to this Section's set of MeetingTimes and the returns the new MeetingTime.
          * 
-         *<p><b>NOTE:</b> If a logically equal meeting time already exists and days are added to it, 
-         * no checks are made by this method or the addDay(d) method to ensure this Section is not in a Schedule which would become invalid by the addition of the DayOfWeek(s).
+         *<p><b>NOTE:</b> This method must be private to ensure no meeting times are added to a Section once the section is in the Meetings table and potentially in a schedule.
          * 
-         * @param pStartTime the start time of the MeetingTime to construct
-         * @param pEndTime the end time of the MeetingTime to construct
-         * @param pDays a list of DayOfWeek of the MeetingTime  to construct
+         * @param pStartTime the start time of the MeetingTime to construct. Not Null.
+         * @param pEndTime the end time of the MeetingTime to construct. Not Null.
+         * @param pDays a set of DayOfWeek of the MeetingTime  to construct. Not Null.
          * @return the constructed MeetingTime if no such MeetingTime already existed in this Section's MeetingTimes set, or the existing MeetingTime otherwise.
          * @throws IllegalArgumentException if pStartT, pEndT, or pDays is null.
          * @throws IllegalArgumentException if !pStartT.lessThan(pEndT).
          * @throws IllegalArgumentException if pDays.isEmpty() or if for any DayOfWekk dow in pDaya, dow == null.
          */
-        public MeetingTime addMeetingTime(UTime pStartTime, UTime pEndTime, List<DayOfWeek> pDays){
+        private MeetingTime addMeetingTime(UTime pStartTime, UTime pEndTime, Collection<DayOfWeek> pDays){
             
-            MeetingTime newMT = new MeetingTime(this, pStartTime, pEndTime, pDays);
+            MeetingTime newMT = new MeetingTime(pStartTime, pEndTime, pDays);
             
             for(MeetingTime existingMT : this.cMeetings)
                 if (newMT.equals(existingMT)){
@@ -361,17 +388,22 @@ public final class Sections implements Table{
          * Adds an Instructor to this Section. 
          * More specifically, this method ensures the specified Instructor is in this Section's Instructors set. 
          * If the specified Instructor is not already in this Section's instructors set, then this method adds the specified Instructor to the set and returns true.
-         * Otherwise, this method does not modify this Section's instructors set and return false..
+         * Otherwise, this method does not modify this Section's instructors set and return false.
          *
          * @param pInstructor the Instructor to add to this Section's instructors set
          * @return true if the specified Instructor not already in the set, false otherwise
          * @throws IllegalArgumentException if pInstructor is null.
          */
-        public boolean addInstructor(Instructor pInstructor) {
+        private boolean addInstructor(Instructor pInstructor) {
             if (pInstructor == null)
                 throw new IllegalArgumentException("A Section's Instructor list cannot contain a null Instructor.");
             return this.cInstructors.add(pInstructor);
         }
+
+        //************************************************************************************************
+        //***************************************Querying*************************************************
+        //************************************************************************************************
+        
         /**
          * Returns true if this Section overlaps with the provided other Section. 
          * Two Sections S1 and S2 overlap if S1.session().overlaps(S2.session()) AND (There exists any MeetingTime M1 in S1 and MeetingTime M2 in S2 such that M1.overlaps(M2))
@@ -423,27 +455,57 @@ public final class Sections implements Table{
          */
         public int seatsAvailable(){return cSeatsAvailable;}
         /**
-         * @return the Section's seats available
+         * @return the Section's waitlist available
          */
         public int waitlistAvailable(){return cWaitlistAvailable;}
-        
+
         /**
-         * @return a new array containing this Section's MeetingTimes, in no particular order
+         * Returns a read-only {@link java.util.Set Set} view of this section's {@link uscheduler.internaldata.Sections.Section.MeetingTime meeting times}.
+         * The set is backed by this section's container for meeting times, so changes to the container are reflected in the set.  
+         * If this section's container for meeting times is modified while an iteration over the set is in progress, the results of the iteration are undefined. 
+         *
+         * <p>This method has less overhead than <tt>meetings2</tt> and should be used when an iterable read-only set will accomplish what is needed.
+         * 
+         * @return a read-only {@link java.util.Set Set} view of this section's {@link uscheduler.internaldata.Sections.Section.MeetingTime meeting times}.
          */
-        public MeetingTime[] meetings(){
-            return cMeetings.toArray(new MeetingTime[cMeetings.size()]);
-        } 
+        public  Set<MeetingTime> meetings1(){
+            return Collections.unmodifiableSet(cMeetings);
+        }
         /**
-         * @return a new array of this Section's Instructors, in no particular order
-         */
-        public Instructor[] instructors(){
-            return cInstructors.toArray(new Instructor[cInstructors.size()]);
-        }  
-               
+         * Returns a new array containing this section's {@link uscheduler.internaldata.Sections.Section.MeetingTime meeting times}.
+         * <p>This method has more overhead than <tt>meetings1</tt> since all meeting times are copied to a new array.
+         * 
+         * @return a new array containing this section's {@link uscheduler.internaldata.Sections.Section.MeetingTime meeting times}.
+         */  
+        public MeetingTime[] meetings2(){
+             return cMeetings.toArray(new MeetingTime[cMeetings.size()]);
+        }
         /**
-         * @return a String consisting of the name of each Instructor in this Section, separated by a comma and space.
+         * Returns a read-only {@link java.util.Set Set} view of this section's {@link uscheduler.internaldata.Instructors instructors}.
+         * The set is backed by this section's container for instructors, so changes to the container are reflected in the set.  
+         * If this section's container for instructors is modified while an iteration over the set is in progress, the results of the iteration are undefined. 
+         *
+         * <p>This method has less overhead than <tt>instructors2</tt> and should be used when an iterable read-only set will accomplish what is needed.
+         * 
+         * @return a read-only {@link Collection} view of this section's {@link uscheduler.internaldata.Instructors instructors}.
          */
-        public String instructorsString(){
+        public  Set<Instructor> instructors1(){
+            return Collections.unmodifiableSet(cInstructors);
+        }
+        /**
+         * Returns a new array containing this section's {@link uscheduler.internaldata.Instructors instructors}.
+         * <p>This method has more overhead than <tt>instructors1</tt> since all instructors are copied to a new array.
+         * 
+         * @return a new array containing this section's {@link uscheduler.internaldata.Instructors instructors}.
+         */  
+        public Instructor[] instructors2(){
+             return cInstructors.toArray(new Instructor[cInstructors.size()]);
+        }
+        /** Returns a String consisting of the name of each instructor in this Section, separated by the provided string. 
+         * @param pSeparator the String that will separate each Instructor in the returned String
+         * @return a String consisting of the name of each Instructor in this Section, separated by the string pSeperator.
+         */
+        public String instructorsString(String pSeparator){
             if(this.cInstructors.isEmpty())
                 return "";
             
@@ -451,13 +513,13 @@ public final class Sections implements Table{
             Iterator<Instructor> instructorsIT = this.cInstructors.iterator();
             sb.append(instructorsIT.next().instructorName());
             while(instructorsIT.hasNext())
-                sb.append(", ").append(instructorsIT.next().instructorName());
+                sb.append(pSeparator).append(instructorsIT.next().instructorName());
             return sb.toString();
         }
         
         @Override
         public String toString(){
-            return "Section[session=" + cSession + ", course=" + cCourse + ", secNum=" + 
+            return "[session=" + cSession + ", course=" + cCourse + ", secNum=" + 
                     cSectionNumber + ", crn=" + cCrn + ", seatsAvail=" + cSeatsAvailable + 
                     ", waitlistAvail=" + cWaitlistAvailable + ", method=" + cInstructionalMethod + 
                     ", campus=" + cCampus + ", meetings=" + cMeetings + ", instructors=" + cInstructors + "]";
@@ -468,7 +530,11 @@ public final class Sections implements Table{
         public String pkey() {
             return this.cSession.pkey() + "~" + this.cCrn;
         }
-    }
+        
+    //************************************************************************************************
+    //***************************************Record Class*****************************************
+    //************************************************************************************************
+
     /**
      * Models a MeetingTime of a Section. Although MeetingTime extends Record, and an instance of a MeetingTime can be considered a record, there is no corresponding MeetingTimes table. 
      * <br>
@@ -484,8 +550,7 @@ public final class Sections implements Table{
      * These restrictions ensure than no properties of a Section can change once a Section becomes associated with a Schedule, potentially invalidating the Schedule.
      * @author Matt Bush
      */
-    public static class MeetingTime implements Record{
-        private final Section cSection;
+    public class MeetingTime implements Record{
         private final UTime cStartTime;
         private final UTime cEndTime;
         /**
@@ -493,8 +558,10 @@ public final class Sections implements Table{
         */
         private final TreeSet<DayOfWeek> cDays;
 
+    //************************************************************************************************
+    //***************************************Data Modification*****************************************
+    //************************************************************************************************
         /**
-         * +++++++++++++++++++++++++++++++++++++++++++This is the one to keep++++++++++++++++++++++++++++++++++++++++
          * Constructs a new MeetingTime with the specified Section, startTime, endTime, and days of week.
          * 
          * @param pSection the Section of the MeetingTime to construct
@@ -505,9 +572,7 @@ public final class Sections implements Table{
          * @throws IllegalArgumentException if !pStartT.lessThan(pEndT).
          * @throws IllegalArgumentException if pDays.isEmpty() or if for any DayOfWekk dow in pDaya, dow == null.
          */
-        private MeetingTime (Section pSection, UTime pStartT, UTime pEndT, List<DayOfWeek> pDays) {
-            if (pSection == null)
-                throw new IllegalArgumentException("A MeetingTime's section cannot be null.");
+        private MeetingTime (UTime pStartT, UTime pEndT, Collection<DayOfWeek> pDays) {
             if (pStartT == null)
                 throw new IllegalArgumentException("A MeetingTime's start time cannot be null.");
             if (pEndT == null)
@@ -517,8 +582,7 @@ public final class Sections implements Table{
             if (pDays == null || pDays.isEmpty())
                 throw new IllegalArgumentException("A MeetingTime must have at least one day.");
             
-            cDays = new TreeSet();
-            cSection = pSection;
+            cDays = new TreeSet<>();
             cStartTime = pStartT;
             cEndTime = pEndT;
             
@@ -544,6 +608,11 @@ public final class Sections implements Table{
                 throw new IllegalArgumentException("A MeetingTime's days set cannot contain a null DayOfWeek.");
             return cDays.add(pDay);
         }
+
+        //************************************************************************************************
+        //***************************************Querying*************************************************
+        //************************************************************************************************
+        
         /**
          * Returns true if this MeetingTime overlaps with the provided MeetingTime. 
          * Two MeetingTimes M1 and M2 overlap if (M1.startTime &lt; M2.endTime AND M1.endTime &gt; M2.startTime) 
@@ -563,7 +632,7 @@ public final class Sections implements Table{
         /**
          * @return the Section to which this MeetingTime applies
          */
-        public Section section(){return cSection;}
+        public Section section(){return Section.this;}
         /**
          * @return this MeetingTime's start time
          */
@@ -573,15 +642,32 @@ public final class Sections implements Table{
          */
         public UTime endTime(){return cEndTime;}
         /**
-         * @return a new array of this MeetingTime's days, ordered by DayOfWeek.
+         * Returns a read-only {@link java.util.Set Set} view of this MeetingTime's days of week.
+         * The set is backed by this schedule's container for days of week, so changes to the container are reflected in the collection.  
+         * If this schedule's container for days of week is modified while an iteration over the collection is in progress, the results of the iteration are undefined. 
+         *
+         * <p>This method has less overhead than <tt>days2</tt> and should be used when an iterable read-only collection will accomplish what is needed.
+         * 
+         * @return  a read-only {@link java.util.Set Set} view of this MeetingTime's days of week.
          */
-        public DayOfWeek[] days(){
-            return cDays.toArray(new DayOfWeek[cDays.size()]);
-        }  
+        public  Set<DayOfWeek> days1(){
+            return Collections.unmodifiableSet(cDays);
+        }
         /**
-         * @return a String consisting of the short display name of each DayOfWeek in this MeetingTime, separated by a comma and space.
+         * Returns a new array containing this schedule's days of week.
+         * <p>This method has more overhead than <tt>days</tt> since each DayOfWeek is copied to a new array.
+         * 
+         * @return a new array containing this schedule's days of week.
+         */  
+        public DayOfWeek[] days2(){
+             return cDays.toArray(new DayOfWeek[cDays.size()]);
+        }
+        /**
+         * Returns a String consisting of the short display name of each DayOfWeek in this MeetingTime, separated by the provided string
+         * @param pSeparator the String that will separate each DayOfWeek in the returned String
+         * @return a String consisting of the short display name of each DayOfWeek in this MeetingTime, separated by pSeparator.
          */
-        public String daysString(){
+        public String daysString(String pSeparator){
             if(this.cDays.isEmpty())
                 return "";
             
@@ -589,9 +675,10 @@ public final class Sections implements Table{
             Iterator<DayOfWeek> daysIT = this.cDays.iterator();
             sb.append(daysIT.next().getDisplayName(TextStyle.SHORT, Locale.getDefault()));
             while(daysIT.hasNext())
-                sb.append(", ").append(daysIT.next().getDisplayName(TextStyle.SHORT, Locale.getDefault()));
+                sb.append(pSeparator).append(daysIT.next().getDisplayName(TextStyle.SHORT, Locale.getDefault()));
             return sb.toString();
-        }  
+        } 
+        
         /**
          * Returns true if this MeetingTime is equal to the provided object.
          * If obj is null or obj isn't an instance of MeetingTime, false is returned. 
@@ -611,11 +698,11 @@ public final class Sections implements Table{
             if (obj == null) {
                 return false;
             }
-            if (getClass() != obj.getClass()) {
+            if (!(obj instanceof MeetingTime)) {
                 return false;
             }
             final MeetingTime other = (MeetingTime) obj;
-            if (!this.cSection.equals(other.cSection)) {
+            if (!Section.this.equals(other.section())) {
                 return false;
             }
             if (!this.cStartTime.equals(other.cStartTime)) {
@@ -637,7 +724,7 @@ public final class Sections implements Table{
         @Override
         public int hashCode(){
             int hash = 17;
-            hash = hash * 31 + cSection.hashCode();
+            hash = hash * 31 + Section.this.hashCode();
             hash = hash * 31 + cStartTime.hashCode();
             hash = hash * 31 + cEndTime.hashCode();
             return hash;
@@ -647,13 +734,14 @@ public final class Sections implements Table{
          */
         @Override
         public String toString(){
-            return "MeetingTime[startTime=" + cStartTime + ", endTime=" + cEndTime + ", days=" + cDays + "]";
+            return "[startTime=" + cStartTime + ", endTime=" + cEndTime + ", days=" + cDays + "]";
         }
         /**
-         * @return the MeetingTime's primary key value, which is cSection.pkey() + "~" + cStartTime + "~" + cEndTime
+         * @return the MeetingTime's primary key value, which is Section.this.pkey() + "~" + cStartTime + "~" + cEndTime
          */
         public String pkey() {
-            return cSection.pkey() + "~" + cStartTime + "~" + cEndTime;
+            return Section.this.pkey() + "~" + cStartTime + "~" + cEndTime;
         }
+    }
     }
 }

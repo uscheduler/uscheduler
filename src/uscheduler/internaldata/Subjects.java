@@ -21,7 +21,7 @@ public final class Subjects implements Table{
     /**
      * The HashMap to store Subject objects using the subject's pkey() as the key into the map.
      */
-    private static final HashMap<String, Subject> cSubjects = new HashMap();
+    private static final HashMap<String, Subject> cSubjects = new HashMap<>();
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
      */
@@ -150,7 +150,7 @@ public final class Subjects implements Table{
          */
         @Override
         public String toString(){
-            return "Subject[subjectAbbr=" + cSubjectAbbr + ", subjectName=" + cSubjectName + "]";
+            return "[subjectAbbr=" + cSubjectAbbr + ", subjectName=" + cSubjectName + "]";
         }
         /**
          * @return the subject's primary key value, which is subjectAbbr()

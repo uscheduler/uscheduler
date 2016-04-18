@@ -10,25 +10,31 @@ import uscheduler.util.SectionsQuery.DayTimeArg;
 
 
 /**
- * A class can implement the DayTimeArgObserver interface when it wants to be informed of changes in DayTimeArg objects.
+ * The interface implemented by a class in order to be an "observer" of changes made to a {@link uscheduler.util.SectionsQuery.DayTimeArg DayTimeArg} object.
+ * An Observer "register" with a DayTimeArg object by adding itself to the DayTimeArg's observer list 
+ * via the {@link uscheduler.util.SectionsQuery.DayTimeArg#addObserver(uscheduler.util.DayTimeArgObserver)  addObserver} method.
+ * For various events of interest, the DayTimeArg will call the corresponding methods defined in this interface for each observer in the observers list.
+ * 
  * @author Matt Bush
  */
 public interface DayTimeArgObserver {
     
     /**
-     * This method is called by the DayTimeArg object, for each DayTimeArgObserver in it's observers set, when the  maxEnd value of the DayTimeArg object changes.
+     * The method that will be called by the DayTimeArg, on each DayTimeArgObserver object in its observers list, 
+     * when its {@link uscheduler.util.SectionsQuery.DayTimeArg#maxEnd() maxEnd()} value changes.
      * 
-     * @param dta the  DayTimeArg object whose maxEnd value changed.
-     * @param pOldMaxEnd the value of maxEnd before it changed
+     * @param pDTA the  DayTimeArg object whose maxEnd value changed.
+     * @param pOldMaxEnd the value of maxEnd before it changed.
      */
-    public void maxEndChanged(DayTimeArg dta, UTime pOldMaxEnd);
+    public void maxEndChanged(DayTimeArg pDTA, UTime pOldMaxEnd);
     
     /**
-     * This method is called by the DayTimeArg object, for each DayTimeArgObserver in it's observers set, when the minStart value of the DayTimeArg object changes.
+     * The method that will be called by the DayTimeArg, on each DayTimeArgObserver object in its observers list, 
+     * when its {@link uscheduler.util.SectionsQuery.DayTimeArg#minStart() minStart()} value changes.
      * 
-     * @param dta the  DayTimeArg object whose minStart value changed.
-     * @param pOldMinStart the value of minStart before it changed
+     * @param pDTA the  DayTimeArg object whose minStart value changed.
+     * @param pOldMinStart the value of minStart before it changed.
      */
-    public void minStartChanged(DayTimeArg dta, UTime pOldMinStart);
+    public void minStartChanged(DayTimeArg pDTA, UTime pOldMinStart);
     
 }

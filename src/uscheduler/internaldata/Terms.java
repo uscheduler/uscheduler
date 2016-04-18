@@ -20,7 +20,7 @@ public final class Terms implements Table {
     /**
      * The HashMap to store Term objects using the term's pkey() as the key into the map. 
      */
-    private static final HashMap<String, Term> cTerms = new HashMap();
+    private static final HashMap<String, Term> cTerms = new HashMap<>();
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
      */
@@ -136,7 +136,7 @@ public final class Terms implements Table {
          */
         @Override
         public String toString(){
-            return "Term[termNum=" + cTermNum + ", termName=" + cTermName + "]";
+            return "[termNum=" + cTermNum + ", termName=" + cTermName + "]";
         }
         /**
          * @return the term's primary key value, which is "" + termNum()

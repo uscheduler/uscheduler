@@ -20,7 +20,7 @@ public final class Instructors implements Table{
     /**
      * The HashMap to store Instructor objects using the instructor's pkey() as the key into the map. 
      */
-    private static final HashMap<String, Instructor> cInstructors = new HashMap();
+    private static final HashMap<String, Instructor> cInstructors = new HashMap<>();
     
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
@@ -123,7 +123,7 @@ public final class Instructors implements Table{
          */
         @Override
         public String toString(){
-            return "Instructor[instructorName=" + cInstructorName + "]";
+            return "[instructorName=" + cInstructorName + "]";
         }
         /**
          * @return the instructor's primary key value, which is instructorName()

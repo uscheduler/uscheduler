@@ -22,16 +22,7 @@ import java.util.Locale;
 /**
  * Created by psout on 3/8/2016.
  */
-public class DayVBox extends VBox implements DayTimeArgObserver{
-    /* TO-DOs
-    * Reference to DayTimeArgs
-    *
-    * Check that after time is really after before time - if not display popup, and revert; otherwise update DayTimeArgs to reflect changes
-    *  - pass any condition including null.
-    *
-    * When unchecked, the controller needs to be notified so that it can iterate through the hboxes to adjust their DTA
-    *
-     */
+public class DayVBox extends VBox{
     private DayOfWeek day;
     CheckBox checkDay = new CheckBox();
     private ComboBox<UTime> cmbTimeBefore = new ComboBox<>();
@@ -64,11 +55,13 @@ public class DayVBox extends VBox implements DayTimeArgObserver{
         this.setAlignment(Pos.CENTER);
         checkDay.setAlignment(Pos.CENTER);
         dta = new SectionsQuery.DayTimeArg(day);
-        dta.addObserver(this);
         this.cmbTimeBefore.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
-            if(newValue.compareTo(this.cmbTimeAfter.getValue()) < 0){
+            if(newValue == null) {
+                dta.setMinStart(null);
+            }else if(cmbTimeAfter.getValue() == null){
                 dta.setMinStart(newValue);
-                this.minStartChanged(this.dta, oldValue);
+            }else if(newValue.compareTo(this.cmbTimeAfter.getValue()) < 0){ //handle comparing to null
+                dta.setMinStart(newValue);
             }else{
                 Popup.display(Alert.AlertType.WARNING, "Invalid Time", "The time you are attempting to select is not" +
                         " valid.  Please select a time that is less than the \"No Classes After\" ");
@@ -76,9 +69,12 @@ public class DayVBox extends VBox implements DayTimeArgObserver{
             }
         });
         this.cmbTimeAfter.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
-            if(newValue.compareTo(this.cmbTimeBefore.getValue()) > 0){
+            if(newValue == null) {
+                dta.setMaxEnd(null);
+            }else if(cmbTimeBefore.getValue() == null) {
                 dta.setMaxEnd(newValue);
-                this.maxEndChanged(this.dta, oldValue);
+            }else if(newValue.compareTo(this.cmbTimeBefore.getValue()) > 0){
+                dta.setMaxEnd(newValue);
             }else{
                 Popup.display(Alert.AlertType.WARNING, "Invalid Time", "The time you are attempting to select is not" +
                         " valid.  Please select a time that is greater than the \"No Classes Before\" ");
@@ -98,44 +94,9 @@ public class DayVBox extends VBox implements DayTimeArgObserver{
             }
         }
     }
-    ArrayList<String> getDayData(){
-        ArrayList<String> dayInfo = new ArrayList<>();
-        if(checkDay.isSelected()){
-            //dayInfo.add(day);
-            dayInfo.add(cmbTimeBefore.getValue().toString());
-            dayInfo.add(cmbTimeAfter.getValue().toString());
-        }else{ return null; }
-        return dayInfo;
-    }
     void disableDay(boolean b){
         cmbTimeBefore.setDisable(b);
         cmbTimeAfter.setDisable(b);
     }
-    void setComboAction(){
-        cmbTimeBefore.getSelectionModel().selectedItemProperty().addListener( (obs, oldValue, newValue) -> {
-           // if()
-        });
-    }
-
-    @Override
-    public void maxEndChanged(SectionsQuery.DayTimeArg dta, UTime pOldMaxEnd) {
-
-    }
-
-    @Override
-    public void minStartChanged(SectionsQuery.DayTimeArg dta, UTime pOldMinStart) {
-
-    }
+    DayOfWeek getDay(){ return day; }
 }
-
-
-
-/*checkDay.setOnAction(e -> {
-                if(!checkDay.isSelected()){
-                    cmbTimeAfter.setDisable(true);
-                    cmbTimeBefore.setDisable(true);
-                }else{
-                    cmbTimeAfter.setDisable(false);
-                    cmbTimeBefore.setDisable(false);
-                }
-        });*/

@@ -21,7 +21,7 @@ public final class Campuses implements Table {
     /**
      * The HashMap to store Campus objects using the campus's pkey() as the key into the map. 
      */
-    private static final HashMap<String, Campus> cCampuses = new HashMap();
+    private static final HashMap<String, Campus> cCampuses = new HashMap<>();
 
     
     /**
@@ -133,7 +133,7 @@ public final class Campuses implements Table {
          */
         @Override
         public String toString(){
-            return "Campus[campusName=" + cCampusName + "]";
+            return "[campusName=" + cCampusName + "]";
         }
         /**
          * @return the campus's primary key value, which is campusName()
