@@ -1,0 +1,194 @@
+/** 
+ *  Tab (CoursesTabe class)
+ *      BorderPane bordrPane
+ *          AnchorPane anchorPane 
+ *              HBox hbxButtonContainer (hbox-main-button-container)
+ *                  btnGenerate (button-action)
+ *                  btnHelp (button-help)
+ *          GiidPane grid
+ *              HBox hbxMainTop (hbox-bordered)
+ *                  cmbTerms
+ *                  lstCampuses
+ *                  VBox vbxDayInputContainer DayInputContainer class (hbox-bordered)
+ *                      StackPane stackPane (stack-pane-grey-label-back);
+ *                          Text txtLabel
+ *                      HBox hbxDayTimeArgs (hbox-day-time-args)
+ *                          VBox DayInput class (vbox-day-input)
+ *                              checkDay
+ *                              cmbMinStart
+ *                              cmbMaxEnd
+ *                          ***
+ *                          VBox DayInput class
+
+ *              ScrolPane CourseInputContainer (scroll-pane-course-inputs)
+ *                  HBox (CourseInput class) (hbox-bordered)
+ *                      VBox vbxLeft (vbox-course-left_inputs)
+ *                          txtSectionsCount
+ *                          cmbSubjects
+ *                          txtCourse
+ *                          cmbAvailabilityArgs
+ *                      lstSections
+ *                      lstSessions
+ *                      lstInstructionalMethods
+ *                      lstInstructors
+ *                      VBox vbxButtons (vbox-course-buttons-container)
+ *                          btnRemove
+ *                          btnInsert
+
+
+
+ */
+.label-detail-table-label{
+    -fx-font-weight: bold;
+    -fx-padding: 5 5 5 5;
+    -fx-text-alignment: center;
+}
+.label-detail-table-data{
+    -fx-padding: 0 0 0 5;
+}
+.scroll-pane-course-inputs{
+    -fx-padding: 10;
+}
+.scroll-pane-schedules{
+    -fx-padding: 15;
+}
+.vbox-day-input{
+    -fx-spacing: 10px;
+    -fx-alignment:TOP_LEFT;
+}
+.hbox-day-time-args{
+    -fx-spacing: 10px;
+}
+.stack-pane-grey-label-back{
+    -fx-background-color: #E3E5EE;
+    -fx-padding: 5;
+    -fx-alignment:CENTER;
+}
+.hbox-bordered {
+    -fx-spacing: 10px;
+    -fx-padding: 15;
+    -fx-border-color: gray;
+    -fx-border-width: 1px;  
+    -fx-alignment:top-center;
+}
+.button-help {
+    -fx-text-fill: white;
+    -fx-background-color: blue;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.4) , 5, 0.0 , 0 , 1 );
+}
+.button-action {
+    -fx-text-fill: white;
+    -fx-background-color: green;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+.button-remove {
+    -fx-text-fill: white;
+    -fx-background-color: red;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+.hbox-main-button-container {
+    -fx-spacing: 10px;
+}
+.vbox-course-buttons-container {
+    -fx-spacing: 10px;
+    -fx-fill-width: true;
+}
+.vbox-course-left_inputs{
+    -fx-spacing: 10px;
+    -fx-fill-width: true;
+}
+
+.text-labels{
+    -fx-font-weight: bold;
+}
+
+
+
+
+.vbox-schedule-container{
+    -fx-border-color: gray;
+    -fx-border-width: 2px;
+}
+.vbox-schedule-header{
+    -fx-background-color: #FEBC11;
+}
+.text-calendar-header{
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+.tab-pane *.tab-header-background {
+    -fx-background-color: white;
+    -fx-effect: innershadow(two-pass-box , rgba(0,0,0,0.6) , 4, 0.0 , 0 , 0);
+}
+.tab-pane:top *.tab-header-area {
+    -fx-background-insets: 0, 0 0 1 0;
+ /* -fx-padding: 0.416667em 0.166667em 0.0em 0.833em; /* 5 2 0 10 */
+    -fx-padding: 0.416667em 0.166667em 0.0em 0.0em; /* overriden as 5 2 0 0 */
+}
+.table-view .filler{
+    -fx-background-color: #E3E5EE;
+}
+.table-view .column-header{
+    -fx-background-color: #E3E5EE;
+}
+.table-view .column-header .label{
+    -fx-font-size: 14px;
+}
+/*.table-view .column-header {
+    -fx-background-color: #E3E5EE;
+}*/
+/*#calendar-tab-pane .tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: yellow;
+}*/
+/*.pane {
+    -fx-background-color: #8fbc8f;
+}*/
+
+/*.grid {
+    -fx-background-color: white;
+    -fx-background-radius: 5.0;
+    -fx-background-insets: 0.0 5.0 0.0 5.0;
+    -fx-padding: 10;
+    -fx-hgap: 10;
+    -fx-vgap: 10;
+}*/
+
+/*.vbox {
+    -fx-background-image: url("graphics/arrow_t_up_right.png");
+    -fx-background-size: 96, 205;
+    -fx-background-repeat: no-repeat;
+    -fx-border-color: #2e8b57;    -fx-border-color: #2e8b57;
+
+    -fx-border-width: 2px;
+    -fx-padding: 10;
+    -fx-spacing: 8;
+}*/
+
+/*.hbox {
+    -fx-background-color: #2f4f4f;
+    -fx-padding: 15;
+    -fx-spacing: 10;
+}*/
+
+/*#hbox-custom {
+    -fx-background-image: url("graphics/cloud.png");
+    -fx-background-size: 60,69;
+    -fx-padding: 18 3 18 6;
+    -fx-padding: 8;
+    -fx-background-radius: 5.0; 
+}*/
+
+/*.flow-tile {
+    -fx-padding: 10.0 3.0 5.0 0.0;
+    -fx-hgap: 4;
+    -fx-vgap: 4;
+}*/
+
+/*#button-custom {
+    -fx-rotate: 45;
+    -fx-text-alignment: center;
+}*/
