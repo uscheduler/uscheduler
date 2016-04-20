@@ -34,9 +34,17 @@ public final class SectionsPageParser {
     /**
      * Parses KSU sections from the Sections Page (KSU Class Schedule Listing) into a List of HTMLSection objects. 
      * The KSU Sections Page is retrieved via a call to {@link uscheduler.externaldata.DocumentRequester#getSectionsPage(int, java.lang.String, java.lang.String) DocumentRequester.getSectionsPage(pTermNum, pSubjAbbr, pCourseNum)}
-     * @param pTermNum the term number that will be used as the term argument in the KSU HTTP request. 
-     * @param pSubjAbbr the subject abbreviation that will be used as the subject argument in the KSU HTTP request. 
-     * @param pCourseNum the course number that will be used as the course argument in the KSU HTTP request. 
+     * 
+     * <p><b>NOTE:</b>For much of the design of this project, it was assumed that the course argument provide to KSU's web server
+     * was treated as "... where courseNum="argument"". 
+     * <br>However, it has been discovered late in the project that KSU treats the course argument as "... where courseNum like("argument*")".
+     * <br>Additionally, It was also assumed that any provided courseNum argument provided that did not correspond to a real course
+     * would result in KSU returning the sections found page, but with no sections. 
+     * This assumption turned out to be wrong. KSU will only return an empty sections page if the courseNum argument is less than 6 character and is alpha-numeric. 
+     * <p>
+     * @param pTermNum the term number for which the get Sections
+     * @param pSubjAbbr the subject abbreviation for which the get Sections
+     * @param pCourseNum the course number for which the get Sections. Not null. Must be 4 or 5 chars long and only contain alphanumeric characters.
      * @return a linked list LinkedList of HTMLSections objects representing the sections parsed from the Sections Page
      * @throws IOException if timed out or failed to make a connection for any reason
      * @throws uscheduler.externaldata.HTMLFormatException if the page returned does not have the HTML structure expected of the Sections Page.
@@ -63,18 +71,25 @@ public final class SectionsPageParser {
     /**
      * Parses KSU sections from the Sections Page (KSU Class Schedule Listing) into a List of HTMLSection objects. 
      * The KSU Sections Page is retrieved via a call to {@link uscheduler.externaldata.DocumentRequester#getSectionsPage(int, java.lang.String, java.lang.String) DocumentRequester.getSectionsPage(pTermNum, "", "")}
+     * 
+     * @deprecated <p><b>NOTE:</b>This method is for testing and debugging purposes only and will not be used in the final product.
+     * 
      * @param pTermNum the term number that will be used as the term argument in the KSU HTTP request. 
      * @return a LinkedList of HTMLSections objects representing the sections parsed from the retrieved Sections Page
      * @throws IOException if timed out or failed to make a connection for any reason
      * @throws uscheduler.externaldata.HTMLFormatException if the page returned does not have the HTML structure expected of the Sections Page.
      * @throws uscheduler.externaldata.NoDataFoundException If KSU returned a Sections page with no data as a result of the provided term number, subject, and course parameters. 
      */    
+    @Deprecated
     public static LinkedList<HTMLSection> parseFromWeb(int pTermNum) throws IOException, HTMLFormatException, NoDataFoundException  {
         Document doc = DocumentRequester.getSectionsPage(pTermNum, "", "");
         return parseSectionsPage(doc, pTermNum );
     }  
     /**
      * Parses a local Sections Page file into a LinkedList of HTMLSection objects.
+     * 
+     * @deprecated <p><b>NOTE:</b>This method is for testing and debugging purposes only and will not be used in the final product.
+     * 
      * @param pFile the File object of the file that is to be parsed.
      * @param pTermNum the term number for the Sections apply
      * @return a linked list LinkedList of HTMLSection objects representing the sections parsed from the Sections Page file
@@ -82,6 +97,7 @@ public final class SectionsPageParser {
      * @throws uscheduler.externaldata.HTMLFormatException if the file does not have the HTML structure expected of the Sections Page.
      * @throws uscheduler.externaldata.NoDataFoundException If the file represents a Sections page that was generated with a term number, subject, and course parameters in which KSU returned a page with no results. 
      */ 
+    @Deprecated
     public static LinkedList<HTMLSection> parseFromFile(File pFile, int pTermNum) throws IOException, HTMLFormatException, NoDataFoundException {
         Document doc = Jsoup.parse(pFile, null);
         return parseSectionsPage(doc, pTermNum);
@@ -89,7 +105,7 @@ public final class SectionsPageParser {
   
     private static LinkedList<HTMLSection> parseSectionsPage(Document pDoc, int pTermNum) throws HTMLFormatException, NoDataFoundException{
         
-        LinkedList<HTMLSection> sectionsLL = new LinkedList();
+        LinkedList<HTMLSection> sectionsLL = new LinkedList<>();
         HTMLSection htmlSec = new HTMLSection();
         
         //***********************Find the DataDisplayTable
@@ -121,13 +137,13 @@ public final class SectionsPageParser {
             throw new HTMLFormatException("Could not find any table rows inside the DataDisplayTable.");
         Iterator<Element> sectionTRsIterator = sectionTRs.iterator();
 
-        /* Begin to process Sections by iterating through the each table row of the Sections Found Table.
+        /* Begin to process Sections by iterating through each table row of the Sections Found Table.
         A new "Section" is found and will be processed each time a Section Table Header is found.
         When a Section Table Header is found, the previously processed Section will be added to the  sectionsLL Linked List.
         The first Section added to the LinkedList will be "dummy" section 
         in order to avoid having to check if the current Section being processed is the first Section encountered.
-        It is assumed a Section Table Header is found 
-        when the child of the current sectionTR is a th element instead of a td element.
+        It is assumed a Section Table Header is found when the child of the current sectionTR is a th element instead of a td element.
+        Once no more Section Table Headers are found, add the previously processed Section to the sectionsLL Linked List!!!
         */
         Elements sectionTRChildren;
         Element sectionTRChild;
@@ -146,9 +162,9 @@ public final class SectionsPageParser {
             
             //Test if current table row's child element is a table header element (i.e. is the Section Table Header)
             if (sectionTRChild.tagName().equals("th")){
-                //Add previously processed Section to the LinkedList and create new Section
+                //Add previously processed Section to the LinkedList and create new Section. First one added will be discarder at the end. 
                 sectionsLL.add(htmlSec);
-                htmlSec = new HTMLSection();
+                htmlSec = new HTMLSection();//last one created will be added at the end.
                 htmlSec.cTermNum = pTermNum;
                 
                 //Process the Section Table Header
@@ -171,9 +187,12 @@ public final class SectionsPageParser {
             } else
                 throw new HTMLFormatException("Child of table row of Sections Found Table is niether a td nor th element."); 
         }
-        //Remove the first "dummy" section from Sections
-        if (!sectionsLL.isEmpty()) 
+        //Remove the first "dummy" section from Sections and add the last one processed, but not added to LL.
+        if (!sectionsLL.isEmpty()) {
+            sectionsLL.add(htmlSec);
             sectionsLL.removeFirst();
+        }
+            
         
         //Return
         return sectionsLL;
@@ -415,7 +434,7 @@ public final class SectionsPageParser {
                 //Split instructors on ", " unless it is followed by "II" or "Sr" or "Jr"
                 //Then add each instructor
                 for (String instructor: instructors.split(", (?!(?:(II)|(Sr)|(Jr)))")){ 
-                    meeting.cInstructors.add(instructor);
+                    meeting.cInstructors.add(instructor.trim());
                 }
             }
             
@@ -502,7 +521,7 @@ public final class SectionsPageParser {
         private String cSession;
         private int cSeatsAvailable;
         private int cWaitlistAvailability;
-        private final LinkedList<HTMLMeetingPlaceTime> cMeetings = new LinkedList();
+        private final LinkedList<HTMLMeetingPlaceTime> cMeetings = new LinkedList<>();
         
         private HTMLSection(){};
         
@@ -603,8 +622,8 @@ public final class SectionsPageParser {
         private UDate cEndDate;
         private UTime cStartTime;
         private UTime cEndTime;
-        private final LinkedList<String> cInstructors = new LinkedList();
-        private final LinkedList<DayOfWeek> cDays = new LinkedList();
+        private final LinkedList<String> cInstructors = new LinkedList<>();
+        private final LinkedList<DayOfWeek> cDays = new LinkedList<>();
 
         private HTMLMeetingPlaceTime(){};
         

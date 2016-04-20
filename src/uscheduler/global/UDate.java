@@ -53,7 +53,7 @@ public class UDate implements Comparable<UDate>{
      * <br><i>y</i> is a two or four digit year
      * <p>Examples of valid strings are: "Dec 12, 2016", "Dec 12, 16", "December 12, 16"
      * @param pDate the string representation of the date from which to construct the UDate.
-     * @throws ParseException 
+     * @throws ParseException if the specified date string cannot be parsed.
      */
     public UDate(String pDate) throws ParseException{
         Calendar cal = new GregorianCalendar();
@@ -87,7 +87,7 @@ public class UDate implements Comparable<UDate>{
 
     /**
      * Returns true if this UDate is less than some other UDate.
-     * @param pOther the other date in which to test if this UDate is less than
+     * @param pOther the other date in which to test if this UDate is less than. Not null.
      * @return true if this UDate is less than pOther
      */  
     public boolean lessThan(UDate pOther){
@@ -98,10 +98,33 @@ public class UDate implements Comparable<UDate>{
         
         return this.cDayOfMonth < pOther.cDayOfMonth;   
     }  
+    /**
+     * Returns true if this UDate is less than or equal some other UDate.
+     * @param pOther the other date in which to test if this UDate is less than or equal to. Not null.
+     * @return true if this UDate is less than or equal pOther
+     */  
+    public boolean lessThanOrEqual(UDate pOther){
+        if (this.cYear != pOther.cYear)
+            return this.cYear <= pOther.cYear;
+        if (this.cMonth != pOther.cMonth)
+            return this.cMonth <= pOther.cMonth;
+        
+        return this.cDayOfMonth <= pOther.cDayOfMonth;   
+    }  
     
-    
-    
-    
+    /**
+     * Returns true if this UDate is greater than some other UDate.
+     * @param pOther the other date in which to test if this UDate is greater than. Not null.
+     * @return true if this UDate is greater than pOther
+     */  
+    public boolean greaterThan(UDate pOther){
+        if (this.cYear != pOther.cYear)
+            return this.cYear > pOther.cYear;
+        if (this.cMonth != pOther.cMonth)
+            return this.cMonth > pOther.cMonth;
+        
+        return this.cDayOfMonth > pOther.cDayOfMonth;   
+    }     
     
     /**
      * Returns the string from which this UDate was constructed
@@ -122,7 +145,7 @@ public class UDate implements Comparable<UDate>{
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof UDate)) {
             return false;
         }
         final UDate other = (UDate) obj;

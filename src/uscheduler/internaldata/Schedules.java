@@ -5,39 +5,92 @@
  */
 package uscheduler.internaldata;
 
+import java.time.DayOfWeek;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import uscheduler.global.UDate;
+import uscheduler.global.UTime;
 import uscheduler.internaldata.Sections.Section;
+import uscheduler.internaldata.Sections.Section.MeetingTime;
 import uscheduler.internaldata.Terms.Term;
 
 
 /**
- * A singleton class that models the Schedules table to store Schedule records.
+ * A singleton class that models the Schedules table to store {@link uscheduler.internaldata.Schedules.Schedule Schedule} records.
  * @author Matt Bush
  * 
  */
 public final class Schedules implements Table{
-    //************************************************************************************************
-    //***************************************Data Modification*****************************************
-    //************************************************************************************************
-    //************************************************************************************************
-    //***************************************Querying*************************************************
-    //************************************************************************************************
-    //************************************************************************************************
-    //***************************************Comparators*********************************************
-    //************************************************************************************************  
-    //************************************************************************************************
-    //***************************************Record Class*********************************************
-    //************************************************************************************************  
     
     /**
-     * The HashMap to store Schedule objects using the schedule's set of Sections as the key into the map. 
-     * See Java's AbstractSet implementation of hashCode and equals to know how a set will work as a key
+     * This specifies the maximum number of schedules allowed in this table. 
+     * If addSchedule is called when the current number of schedules is equal to max, and the addSchedule method succeeded, then the last schedule in the TeeSet wil be removed.
+     * This technique ensures that the table doesn't grow too large to be useful while still preserving the best schedules when added
+     * since the better ones will always filter their way to the top. (see comparator below)
      */
-    private static final HashMap<HashSet<Section>, Schedule> cSchedules = new HashMap();
+    public static int MAX_SCHEDULE_COUNT = 50;
+    /**
+     * This Comparator is used in the cSchedules TreeSet to try to accomplish 2 things:
+     * 1) Have TreeSet ordered by "importance" of a Schedule. 
+     * One schedule sch1 is more "important" than another sch2 
+     * if sch1.isSaved()==true and sch2.isSaved==false.
+     * If sch1.isSaved() == sch2.isSaved, then sch1 is more important than sch2 if sch1.estMinutesAtSchool() is less than sch2.estMinutesAtSchool() 
+     * If sch1.isSaved() == sch2.isSaved and sch1.estMinutesAtSchool() == sch2.estMinutesAtSchool(), then both are equally "important"
+     * 2) The Comparator must return 0 on two logically equal Schedules, independent of "importance". Logical equivalence is based on the their set of sections.
+     */
+    private static final Comparator<Schedule> SAVED_MINUTES_ASC_UNIQUE = new Comparator<Schedule>() {
+            @Override
+            public int compare(Schedule sch1, Schedule sch2) {
+                //Test for Logical equality FIRST
+                if(sch1.cSections.equals(sch2.cSections))
+                    return 0;
+                
+                //Compare on Saved (Saved "better" than un-saved)
+                if(sch1.cSaved != sch2.cSaved)
+                    return (sch1.cSaved) ? -1 : 1;
+
+                int diff;
+                
+                //Compare on number of unavailable sections
+                diff = sch1.cNumberClosedSections - sch2.cNumberClosedSections;
+                if (diff != 0)
+                    return diff;
+                
+                diff = (int) (sch1.cEstNumCampusSwitches1HrOrLess - sch2.cEstNumCampusSwitches1HrOrLess);
+                if (diff != 0)
+                    return diff;
+                
+                 diff = (int) (sch1.cEstNumCampusSwitches - sch2.cEstNumCampusSwitches);
+                if (diff != 0)
+                    return diff; 
+                
+                diff = (int) (sch1.cEstDaysAtSchool - sch2.cEstDaysAtSchool);
+                if (diff != 0)
+                    return diff;
+
+                diff = (int) (sch1.cEstMinutesAtSchool - sch2.cEstMinutesAtSchool);
+                if (diff != 0)
+                    return diff;
+                
+                //At this point, order is not important. 
+                //All that matters is that there isn't  "collision" on logically un-equal schedules
+                return sch1.hashCode() - sch2.hashCode();
+ 
+            }
+    };
+    
+    /**
+     * The TreeSet used to store Schedules sorted by "importance" and enforcing uniqueness using  the SAVED_MINUTES_ASC_UNIQUE Comparator.
+     */
+    private static final TreeSet<Schedule> cSchedules = new TreeSet<>(SAVED_MINUTES_ASC_UNIQUE);
     
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
@@ -77,51 +130,102 @@ public final class Schedules implements Table{
      * or null if the constructed Schedule is invalid.
      * @throws IllegalArgumentException see above description
      */  
-    public static Schedule addSchedule(List<Section> pSections){
+    public static boolean addSchedule(Section... pSections){
         if (pSections == null)
             throw new IllegalArgumentException("Null argumen pSections");
-        if (pSections.isEmpty())
+        if (pSections.length == 0)
             throw new IllegalArgumentException("A Schedule must consist of at least one Section");
         
-        Schedule newSchedule = new Schedule(pSections.get(0).session().term());
+        Schedule newSchedule = new Schedule(pSections[0].session().term());
         for (Section sec : pSections){
             if (newSchedule.addSection(sec) == false)
-                return null;
+                return false;
         }
-        
-        Schedule existingSchedule = cSchedules.get(newSchedule.pkey());
-        if (existingSchedule == null){
-            cSchedules.put(newSchedule.pkey(), newSchedule);
-            return newSchedule;
+        //create <code>Session Partitions</code> ***BEFORE*** adding the schedule to the table!
+        //The comparator used in the sSchedules is dependent of attributes derived from the <code>Session Partitions</code>.
+        newSchedule.buildSessionPartitions();
+            
+        if (!cSchedules.contains(newSchedule)){
+            cSchedules.add(newSchedule);
+            if (cSchedules.size()>MAX_SCHEDULE_COUNT)
+                cSchedules.pollLast();
+            return true;
         }
-        return existingSchedule;
+        return false;
     }
     /**
+     * Marks the specified schedule as so that <code>{@link uscheduler.internaldata.Schedules.Schedule#isSaved()  isSaved()} == true</code>.
+     * If at the time of the call, <code>{@link uscheduler.internaldata.Schedules.Schedule#isSaved()  isSaved()} == true</code>, then no change is made to the Schedule.
+     * Otherwise, the schedule's position will change in the Schedule's table as a result of setting the schedule to saved..
+     * @param pSchedule the schedule to mark as "saved". Not null and <code>{@link uscheduler.internaldata.Schedules.Schedule#isDeleted()  isDeleted()} == false</code>.
+     * @throws IllegalArgumentException if pSchedule == null || pSchedule.isDeleted() == true
+     */
+    public static void save(Schedule pSchedule){
+        /**
+         * Must first remove pScheduled from cSchedules TreeSet, then change cSaved, then add back to cSchedules TreeSet.
+         * This is because schedule.cSaved is used in the compare method used in the Comparator provided to the cSchedules TreeSet
+         */
+        if (pSchedule == null || pSchedule.isDeleted())
+            throw new IllegalArgumentException("Invalid pSchedule argument");
+        if (!pSchedule.cSaved){
+            cSchedules.remove(pSchedule);
+            pSchedule.cSaved = true;
+            cSchedules.add(pSchedule);            
+        }
+    }
+    /**
+     * Marks the specified schedule as so that <code>{@link uscheduler.internaldata.Schedules.Schedule#isSaved()  isSaved()} == false</code>.
+     * If at the time of the call, <code>{@link uscheduler.internaldata.Schedules.Schedule#isSaved()  isSaved()} == false</code>, then no change is made to the Schedule.
+     * Otherwise, the schedule's position will change in the Schedule's table as a result of setting the schedule to un-saved..
+     * @param pSchedule the schedule to mark as "un-saved". Not null and <code>{@link uscheduler.internaldata.Schedules.Schedule#isDeleted()  isDeleted()} == false</code>.
+     * @throws IllegalArgumentException if pSchedule == null || pSchedule.isDeleted() == true
+     */
+    public static void unSave(Schedule pSchedule){
+        /**
+         * Must first remove pScheduled from cSchedules TreeSet, then change cSaved, then add back to cSchedules TreeSet.
+         * This is because schedule.cSaved is used in the compare method used in the Comparator provided to the cSchedules TreeSet
+         */
+        if (pSchedule == null || pSchedule.isDeleted())
+            throw new IllegalArgumentException("Invalid pSchedule argument");
+        if (pSchedule.cSaved){
+            cSchedules.remove(pSchedule);
+            pSchedule.cSaved = false;
+            cSchedules.add(pSchedule);            
+        }
+    }
+    
+    /**
      * Deletes from the Schedules table, the specified Schedule.
-     * @param pSchedule the schedule to delete
+     * @param pSchedule the schedule to delete. Not null and <code>{@link uscheduler.internaldata.Schedules.Schedule#isDeleted()  isDeleted()} == false</code>.
      * @throws IllegalArgumentException if pSchedule == null || pSchedule.isDeleted() == true
      */
     public static void delete(Schedule pSchedule){
         if (pSchedule == null || pSchedule.isDeleted())
             throw new IllegalArgumentException("Invalid pSchedule argument");
-        Schedule found = cSchedules.remove(pSchedule.pkey());
-        found.markDeleted();
+        cSchedules.remove(pSchedule);
+        pSchedule.cDeleted = true;
     }
     /**
-     * Deletes from the Schedules table, all Schedules s such that s.isSaved() == false. 
+     * Deletes from the Schedules table, all Schedules s such that <code>{@link uscheduler.internaldata.Schedules.Schedule#isSaved()  isSaved()} == false</code>.
+     * @return the number of unsaved schedules deleted.
      */
-    public static void deleteUnsaved(){
-        Iterator<Schedule> it = cSchedules.values().iterator();
+    public static int deleteUnsaved(){
+        int numDeleted = 0;
+        Iterator<Schedule> it = cSchedules.iterator();
         Schedule s;        
         while (it.hasNext())
         {
           s = it.next();
           if (!s.isSaved()){
               it.remove();
-              s.markDeleted();
+              s.cDeleted = true;
+              numDeleted++;
           }
         }
+        return numDeleted;
     }
+
+
     //************************************************************************************************
     //***************************************Querying*************************************************
     //************************************************************************************************
@@ -132,32 +236,40 @@ public final class Schedules implements Table{
     public static int size(){
         return cSchedules.size();
     }
-
     /**
-     * Method to return a list of all Schedules in the table in no specific order. 
+     * Returns a read-only {@link Set} view of all {@link uscheduler.internaldata.Schedules.Schedule schedules} in the Schedules table.
+     * The collection is backed by the Schedules table, so changes to the table are
+     * reflected in the set.  If the Schedules table is
+     * modified while an iteration over the collection is in progress, the results of the iteration are undefined. 
+     *
+     * <p>This method has less overhead than <tt>getAll2</tt> and should be used when an iterable read-only set will accomplish what is needed.
      * 
-     * @return A list of all Schedules in the table in no specified order.
+     * @return a read-only {@link Set} view of all schedules in the Schedules table
      */
-    public static ArrayList<Schedule> getAll(){
-        return new ArrayList<>(cSchedules.values());
+    public static Set<Schedule> getAll1(){
+        return Collections.unmodifiableSet(cSchedules);
     }
-    //************************************************************************************************
-    //***************************************Comparators*********************************************
-    //************************************************************************************************ 
-//    /**
-//     * A Comparator of type Schedule that compares two Schedule objects based on ScheduleNumber().
-//     * This Comparator will allow ordering a Collection of Schedule objects by ScheduleNumber() ascending.
-//     * <br><br>
-//     * <b>Note:</b> This Comparator is NOT consistent with equals() in the sense that this Comparator's compare method is performed on a Schedule's Schedule number, 
-//     * which is not the primary key of a Schedule. Thus the compare method will return 0 when performed on two Schedule objects with the same Schedule number, 
-//     * even thought they are two different Schedules. Thus, <b> DO NOT </b> use this Comparator in a TreeSet.
-//     */
-//    public static final Comparator<Schedule> SEC_NUM_ASC = new Comparator<Schedule>() {
-//            @Override
-//            public int compare(Schedule s1, Schedule s2) {
-//                return s1.cScheduleNumber.compareTo(s2.cScheduleNumber);
-//            }
-//    };     
+    /**
+     * Returns a new array containing all {@link uscheduler.internaldata.Schedules.Schedule schedules} in the Schedules table.
+     * <p>This method has more overhead than <tt>getAll1</tt> since all {@link uscheduler.internaldata.Schedules.Schedule schedules} in the table are copied to a new array.
+     * 
+     * @return a new array containing all {@link uscheduler.internaldata.Schedules.Schedule schedules} in the Schedules table.
+     */  
+    public static Schedule[] getAll2(){
+        return cSchedules.toArray(new Schedule[cSchedules.size()]);
+    }
+    /**
+     * Returns a new List containing all schedules in the Schedules table such that {@link uscheduler.internaldata.Schedules.Schedule#isSaved() isSaved()} == true.
+     * 
+     * @return a new List containing all schedules in the Schedules table such that {@link uscheduler.internaldata.Schedules.Schedule#isSaved() isSaved()} == true.
+     */  
+    public static List<Schedule> getAllSaved(){
+        List<Schedule> aList = new ArrayList<>();
+        for(Schedule s: cSchedules)
+            if(s.isSaved())
+                aList.add(s);
+        return aList;
+    }   
     
     //************************************************************************************************
     //***************************************Record Class*********************************************
@@ -171,15 +283,7 @@ public final class Schedules implements Table{
      * <br>
      * <b>NOTE:</b> However, unlike all other record classes, a Schedule is NOT immutable (i.e. it can change). Additionally, a Schedule can be deleted from the Schedules table.
      * This class provides a method isDeleted() that returns true if the schedule has been deleted from the Schedules table. 
-     * <p>
-     * <b>Design Note:</b> This class does not provide calculations for the derived attributes "average number of days of week at school" and "total time at school". 
-     * The reason is that these calculations are:
-     * <br>1) Very complex to implement and if implemented by this class, this class' responsibilities would become disproportionately greater than other "record" type classes. 
-     * <br>2) Very resource costly, in processing and storage. 
-     * <br>
-     * In case it's realized that it's not feasible to implement these derived attributes, from the perspective of development time or performance, 
-     * this class' design will not need to be altered.
-     * <br>The current plan is to have some sort of wrapper class(es) extend the functionality of this one in order to provide the derived attributes.
+     *
      * 
      * @author Matt Bush
      */
@@ -187,12 +291,36 @@ public final class Schedules implements Table{
         private final Term cTerm;
         private boolean cSaved;
         private boolean cDeleted;
+        private int cNumberClosedSections;
+        private double cEstNumCampusSwitches1HrOrLess;
+        private double cEstNumCampusSwitches;
+        private double cEstDaysAtSchool;
+        private double cEstMinutesAtSchool;
 
         /**
          * The HashSet used to store a Schedule's sections, using the fact that no two same instances of a Section can exist that are equal in terms of their values to ensure no duplicates.
          */
         private final HashSet<Section> cSections;
+        /**
+         * Stores this schedule's <code>Session Partitions</code> using  comparator on the start date of the <code>Session Partition</code>, which is unique relative to a schedule.
+         */
+        private final TreeSet<SessionPartition> cSessionPartitions;
+        /**
+         * A Comparator of type SessionPartition that compares two SessionPartition objects based on the SessionPartition's startTime(), 
+         * which will be unique for SessionPartitions of the same Schedule.
+         */
+        private final Comparator<SessionPartition> START_DATE_ASC = new Comparator<SessionPartition>() {
+            @Override
+            public int compare(SessionPartition sp1, SessionPartition sp2) {
+                return sp1.cStartDate.compareTo(sp2.cStartDate);
+            }
+        };  
+        
 
+    //************************************************************************************************
+    //***************************************Data Manipulation*********************************************
+    //************************************************************************************************ 
+        
         /**
          * Private constructor only to be used by Schedules class ensures no instances of Schedule will exist outside of Schedules' HashSet
          * 
@@ -200,12 +328,12 @@ public final class Schedules implements Table{
          * @throws IllegalArgumentException if pTerm is null.
          */
         private Schedule (Term pTerm) {
-            if (pTerm == null)
-                throw new IllegalArgumentException("A Schedule's term cannot be null.");
             cTerm = pTerm;
-            cSaved = false;
-            cDeleted = false;
+            cSaved = false; //only to be set by Schedules class
+            cDeleted = false; //only to be set by Schedules class
             cSections = new HashSet<>();
+            cSessionPartitions = new TreeSet<>(START_DATE_ASC);
+            
         }
         /**
          * Attempts to add the specified Section to this Schedule.<br>
@@ -225,44 +353,108 @@ public final class Schedules implements Table{
          * @return true if the Section was added to this Schedule.
          * @throws IllegalArgumentException if pSection is null, pSection.session().term() != this.term(), or the Course of the specified Section equals the course of any Section previously added. 
          */
-        private boolean addSection(Section pSection) {
-            if (pSection == null)
-                throw new IllegalArgumentException("A Schedule cannot contain a null Section.");
-            if (pSection.session().term() != this.cTerm)
-                throw new IllegalArgumentException("A Schedule must consist of sections all belonging to the same term.");           
+        private boolean addSection(Section pSection) {         
             for (Section addedSection : cSections){
-                if (addedSection.course().equals(pSection.course()))
-                    throw new IllegalArgumentException("A Schedule must consist of Sections from distinct Courses.");  
                 if (addedSection.overlaps(pSection))
                     return false;
             }
+            if(pSection.seatsAvailable()==0)
+                cNumberClosedSections++;
             return cSections.add(pSection);//Note: This Should NEVER return false, because the ONLY way for it to return false is if the Section is already in cSections, which would have caused overlap.
         } 
         
         /**
-         * Returns the primary key value of this Schedule.
-         * @return the primary key value of this Schedule, which is its HashSet of sections.
+         * Builds the <code>Session Partitions</code> of this schedule. 
+         * This should be called by the Schedules class right before adding this Schedule to the table and once no more additions of sections to this SChedule will be made.
          */
-        private HashSet<Section> pkey(){return cSections;}
+        private void buildSessionPartitions(){
+
+            TreeSet<UDate> datesTree = new TreeSet<>();
+            //For each section in this schedule, add the section's session's start date and end date 
+            //to a TreeSet<UDate> to get the distinct <code>Session Partition</code> dates ordered.
+            for(Section sec: cSections){
+                if(!sec.meetings1().isEmpty()){
+                    datesTree.add(sec.session().startDate());
+                    datesTree.add(sec.session().endDate());                      
+                }
+            }
+            //construct new <code>Session Partitions</code> based on ordered distinct dates
+            UDate[] datesArray = datesTree.toArray(new UDate[datesTree.size()]);
+            for(int i = 1; i < datesArray.length; i++){
+                SessionPartition tempSessPart = new SessionPartition(datesArray[i-1], datesArray[i]);
+                if (!tempSessPart.cPartitionSections.isEmpty()){
+                    cSessionPartitions.add(tempSessPart);
+                }
+            }
+            //************************************************
+            for(SessionPartition sp : cSessionPartitions){
+                this.cEstNumCampusSwitches1HrOrLess = this.cEstNumCampusSwitches1HrOrLess + sp.estNumCampusSwitches1HrOrLess(); 
+                this.cEstNumCampusSwitches = this.cEstNumCampusSwitches + sp.estNumCampusSwitches();
+                this.cEstDaysAtSchool = this.cEstDaysAtSchool + sp.estDaysAtSchool();
+                this.cEstMinutesAtSchool = this.cEstMinutesAtSchool  + sp.estMinutesAtSchool();
+            }  
+        }
+        //************************************************************************************************
+        //***************************************Querying*********************************************
+        //************************************************************************************************ 
         
-        /**
-         * Sets this Schedule's status to deleted.
-         */
-        private void markDeleted(){
-            cDeleted = true;
-        } 
-        
+//        /**
+//         * Returns the primary key value of this Schedule.
+//         * @return the primary key value of this Schedule, which is its HashSet of sections.
+//         */
+//        private HashSet<Section> pkey(){return cSections;}
+
         /**
          * @return the Schedule's Term
          */
         public Term term(){return cTerm;}
         /**
-         * @return a list of this Schedule's Sections, in no particular order
+         * Returns a read-only {@link java.util.Set Set} view of this schedule's {@link uscheduler.internaldata.Sections.Section sections}.
+         * <p>This method has less overhead than <tt>sections2</tt> and should be used when an iterable read-only set will accomplish what is needed.
+         * @return a read-only {@link java.util.Set Set} view of this schedule's {@link uscheduler.internaldata.Sections.Section sections}.
          */
-        public ArrayList<Section> sections(){
-            return new ArrayList<>(cSections);
-        } 
-        
+        public  Set<Section> sections1(){
+            return Collections.unmodifiableSet(cSections);
+        }
+        /**
+         * Returns a new array containing this schedule's {@link uscheduler.internaldata.Sections.Section sections}.
+         * <p>This method has more overhead than <tt>sections1</tt> since all {@link uscheduler.internaldata.Sections.Section sections} are copied to a new array.
+         * 
+         * @return a new array containing this schedule's {@link uscheduler.internaldata.Sections.Section sections}.
+         */  
+        public Section[] sections2(){
+             return cSections.toArray(new Section[cSections.size()]);
+        }
+        /**
+         * Returns a new ArrayList containing this schedule's {@link uscheduler.internaldata.Sections.Section sections} ordered by the specified section comparator,
+         * 
+         * @param pComparator A Comparator of type Section that specifies the order of the returned Sections.
+         * @return a new ArrayList containing this schedule's {@link uscheduler.internaldata.Sections.Section sections}. order by the specified comparator.
+         */  
+        public ArrayList<Section>  sections2(Comparator<Section> pComparator){
+            ArrayList<Section> arrList = new ArrayList(cSections);
+            Collections.sort(arrList, pComparator);
+            return arrList;
+        }
+        /**
+         * Returns a read-only Set view of this schedule's {@link uscheduler.internaldata.Schedules.Schedule.SessionPartition SessionPartitions}.
+         *
+         * <p>This method has less overhead than <tt>sessionPartitions2</tt> and should be used when an iterable read-only set will accomplish what is needed.
+         * 
+         * @return a read-only Set view of this schedule's {@link uscheduler.internaldata.Schedules.Schedule.SessionPartition SessionPartitions}.
+         */
+        public  Set<SessionPartition> sessionPartitions1(){
+            return Collections.unmodifiableSet(cSessionPartitions);
+        }
+        /**
+         * Returns a new array containing this schedule's {@link uscheduler.internaldata.Schedules.Schedule.SessionPartition SessionPartitions}
+         * <p>This method has more overhead than <tt>sections1</tt> since all {@link uscheduler.internaldata.Schedules.Schedule.SessionPartition SessionPartitions} are copied to a new array.
+         * 
+         * @return a new array containing this schedule's {@link uscheduler.internaldata.Schedules.Schedule.SessionPartition SessionPartitions}
+         */  
+        public SessionPartition[] sessionPartitions2(){
+             return cSessionPartitions.toArray(new SessionPartition[cSessionPartitions.size()]);
+        }
         /**
          * @return true if this Schedule is saved
          */
@@ -277,47 +469,270 @@ public final class Schedules implements Table{
          */      
         @Override
         public String toString(){
-            return "Schedule[saved=" + cSaved + ", sections=" + cSections +  "]";
+            return "[saved=" + cSaved + ", sections=" + cSections +  "]";
         }
-//        /**
-//         * Returns true if this Schedule's set of sections is equal to the other Schedule's set of sections.
-//         * <br>
-//         * Equality of the two sets of sections is based on the mathematical perspective of equality of sets. That is, two sets are equal if they contain the same objects.
-//         * <br>
-//         * If obj is null or obj isn't an instance of Schedule, false is returned. 
-//         * Otherwise, this Schedule is equal to the other Schedule if and only if they contain their sets of sections.
-//         * <br>
-//         * <br>
-//         * Unlike other record classes, it is useful that Schedule override equals() and hashCode(). 
-//         * With other record classes, it is guaranteed that no two logically equal instances of records can exist because other table classes don't permit deleting. 
-//         * However, with this class it is possible that two two or more logically equal instances exist, although only one can be in the schedule table at any given time.
-//         * 
-//         * @return true if this MeetingTime is equal to the provided object.
-//         */
-//        @Override
-//        public boolean equals(Object obj) {
-//            if (obj == null) {
-//                return false;
-//            }
-//            if (getClass() != obj.getClass()) {
-//                return false;
-//            }
-//            final Schedule other = (Schedule) obj;
-//            return this.pkey().equals(other.pkey()); //See Java's AbstractSet implementation of equals to know what this returns
-//        }
-//        /**
-//         * Returns this Schedule's hash code which is based on its set of sections.
-//         * <br>
-//         * <br>
-//         * Unlike other record classes, it is useful that Schedule override equals() and hashCode(). 
-//         * With other record classes, it is guaranteed that no two logically equal instances of records can exist because other table classes don't permit deleting. 
-//         * However, with this class it is possible that two two or more logically equal instances exist, although only one can be in the schedule table at any given time.
-//         * @return this Schedule's hash code.
-//         */
-//        @Override
-//        public int hashCode(){
-//            return this.pkey().hashCode();
-//        }
+        /**
+         * 
+         * @return the estimated number of days at school of this schedule
+         */      
+        public double estDaysAtSchool(){
+            return cEstDaysAtSchool;
+        }
+        /**
+         * 
+         * @return the estimated number of minutes at school of this schedule
+         */      
+        public double estMinutesAtSchool(){
+            return cEstMinutesAtSchool;
+        }
+        public double estNumCampusSwitches1HrOrLess(){
+            return cEstNumCampusSwitches1HrOrLess;
+        }
+        public double estNumCampusSwitches(){
+            return cEstNumCampusSwitches;
+        }
+
+        //************************************************************************************************
+        //***************************************Inner Class*********************************************
+        //************************************************************************************************    
+        /** This class models a Session Partition of a {@link uscheduler.internaldata.Schedules.Schedule Schedule}.
+         * 
+         * <p>Let <code>{sec[1], sec[2], ..., sec[n]}</code> be the set of sections in the schedule <code>U</code>.
+         * <br>Let <code>(dt[1], dt[2], ..., dt[k]) </code>be the sequence of distinct dates composed of the
+         * {@link uscheduler.internaldata.Sessions.Session#startDate() startDate()} and {@link uscheduler.internaldata.Sessions.Session#endDate() endDate()} 
+         * of the {@link uscheduler.internaldata.Sections.Section#session() session} of each <code>sec[i]</code> in <code>U</code>, 
+         * ordered by date ascending such that <code>dt[i] &lt; dt[i+1]</code>.
+         * <p>The <b><code>Session Partitions</code></b> of a schedule <code>U</code> is the sequence of ordered pairs <code>(sp[1], sp[2], ... , sp[k-1])</code> 
+         * such that <code>sp[i] = (dt[i], dt[i+1])</code>. Each <code>sp[i]</code> is said to be a <b><code>Session Partition</code></b> of U. 
+         * <p><b>Example:</b> Suppose a schedule <code>U</code> consists of the sections <code>{sec[1], sec[2], sec[3], sec[4]}</code> such that:
+         * <br>
+         * <code>
+         * <br>sec[1].session().startDate() == 5/16/2016 and sec[1].session().endDate() == 7/27/2016 
+         * <br>sec[2].session().startDate() == 5/16/2016 and sec[2].session().endDate() == 5/26/2016 
+         * <br>sec[3].session().startDate() == 6/01/2016 and sec[3].session().endDate() == 7/27/2016 
+         * <br>sec[4].session().startDate() == 6/01/2016 and sec[4].session().endDate() == 6/24/2016  
+         * <br>sec[5].session().startDate() == 6/08/2016 and sec[5].session().endDate() == 7/21/2016  
+         * <br>sec[5].session().startDate() == 6/28/2016 and sec[5].session().endDate() == 7/27/2016  
+         * </code>
+         * <br><br>Then the <code>Session Partitions</code> of <code>U</code> are:
+         * <br>
+         * <code>
+         * <br>sp[1] = (5/16, 5/26)
+         * <br>sp[2] = (5/26, 6/01)
+         * <br>sp[3] = (6/01, 6/08)
+         * <br>sp[4] = (6/08, 6/24) 
+         * <br>sp[5] = (6/24, 6/28)
+         * <br>sp[6] = (6/28, 7/21)
+         * <br>sp[7] = (7/21, 7/25)
+         * <br>sp[8] = (7/25, 7/27)
+         * </code>
+         * <br>
+         * <br> where each date in the ordered pair is the <code>Session Partition's</code> <b>{@link uscheduler.internaldata.Schedules.Schedule.SessionPartition#startDate() startDate}</b> 
+         * and <b>{@link uscheduler.internaldata.Schedules.Schedule.SessionPartition#endDate()  endDate}</b> respectively.
+         * 
+         * <p> The <b>{@link uscheduler.internaldata.Schedules.Schedule.SessionPartition#lenght() length}</b> of a <code>Session Partition</code> <code>sp[i]</code> 
+         * is the number of days between <code>sp[i].startDate</code> and <code>sp[i].endDate</code>. The <code>length</code> of <code>sp[1]</code> above is <code>10</code>.
+ 
+         * <p>A section <code>sec</code> in a schedule <code>U</code> is said to be <b>in the session partition</b> <code>sp[i]</code> 
+         * if <code>sp[i]</code> is a session partition of <code>U</code> 
+         * and <code>sec.session().startDate()</code> &lt;= <code>sp[i].startDate()</code> 
+         * and <code>sp[i].endDate()</code> &lt;= <code>sec.session().endDate()</code>.
+         * 
+         * <p>Thus, continuing with the above example:
+         * <br>
+         * <code>
+         * <br>sp[1].sections = {sec[1], sec[2]}
+         * <br>sp[2].sections = {sec[1]}
+         * <br>sp[3].sections = {sec[1], sec[3], sec[4]}
+         * <br>sp[4].sections = {sec[1], sec[3], sec[4], sec[5]} 
+         * <br>sp[5].sections = {sec[1], sec[3], sec[5]}
+         * <br>sp[6].sections = {sec[1], sec[3], sec[5], sec[6]}
+         * <br>sp[7].sections = {sec[1], sec[3],  sec[6]}
+         * <br>sp[8].sections = {sec[1]}
+         * </code>
+         * <br>
+
+         */
+        public class SessionPartition{
+            private final UDate cStartDate;
+            private final UDate cEndDate;
+            private final HashSet<Section>  cPartitionSections;
+            private final TreeMap<DayOfWeek, MeetingDayPartition> cMeetingDayPartitions;
+            
+            //******************Calculated values
+            private final int cLength;
+            private final double cWeeks;
+            private final double cEstNumCampusSwitches1HrOrLess;
+            private final double cEstNumCampusSwitches;
+            private final double cEstMinutesAtSchool;
+            private final double cEstDaysAtSchool;
+
+            private SessionPartition(UDate pStartDate, UDate pEndDate){
+                cStartDate = pStartDate;
+                cEndDate = pEndDate;
+                
+                cLength = cStartDate.daysTo(cEndDate);
+                cWeeks = cLength / 7.0;
+                
+                cPartitionSections = new HashSet();
+                cMeetingDayPartitions = new TreeMap<>();
+                
+                for(Section sec: cSections)
+                    //This Section is "in" this SessionPartition. Add its MeetingTimes to the map
+                    if(sec.session().startDate().lessThanOrEqual(pStartDate) && pEndDate.lessThanOrEqual(sec.session().endDate())){
+                        cPartitionSections.add(sec);
+                        for(MeetingTime mt: sec.meetings1())
+                            for(DayOfWeek dow : mt.days1()){
+                                MeetingDayPartition foundSpmd = cMeetingDayPartitions.get(dow);
+                                if (foundSpmd == null)
+                                    cMeetingDayPartitions.put(dow, new MeetingDayPartition(dow, mt));
+                                else
+                                    foundSpmd.addMeetingTime(mt);
+                            }
+                    }
+               int mdpNumCampSwitch1hr = 0;
+               int mdpNumCampSwitch = 0;
+               int mdpMinutesAtSchool = 0;
+                for(MeetingDayPartition spmd : cMeetingDayPartitions.values()){
+                   mdpNumCampSwitch1hr = mdpNumCampSwitch1hr + spmd.numCampusSwitches1HrOrLess();
+                   mdpNumCampSwitch = mdpNumCampSwitch + spmd.numCampusSwitches();
+                   mdpMinutesAtSchool = mdpMinutesAtSchool + spmd.minutesAtSchool();
+               }
+               this.cEstNumCampusSwitches1HrOrLess = mdpNumCampSwitch1hr * this.cWeeks;
+               this.cEstNumCampusSwitches = mdpNumCampSwitch * this.cWeeks;
+               this.cEstMinutesAtSchool = mdpMinutesAtSchool * this.cWeeks;
+               
+               this.cEstDaysAtSchool = cMeetingDayPartitions.size() * cWeeks;
+            }
+            //************************************************************************************************
+            //***************************************Querying*********************************************
+            //************************************************************************************************ 
+            /**
+             * @return the Schedule to which this SessionPartition belongs.
+             */
+            public Schedule schedule() {return Schedule.this;}
+            public UDate startDate(){return cStartDate;}
+            public UDate endDate(){return cEndDate;}
+            public int lenght(){return this.cLength;}
+            public double weeks(){return cWeeks;}
+            public int daysPerWeekAtSchool(){return cMeetingDayPartitions.size();}
+            public double estDaysAtSchool(){return cEstDaysAtSchool;}
+            public double estMinutesAtSchool(){return this.cEstMinutesAtSchool;}
+            public double estNumCampusSwitches(){return this.cEstNumCampusSwitches;}
+            public double estNumCampusSwitches1HrOrLess(){return this.cEstNumCampusSwitches1HrOrLess;}
+            
+            /**
+             * @return a read-only Set view of this SessionPartition's sections.
+             */
+            public Set<Section> sections1(){return Collections.unmodifiableSet(cPartitionSections);}
+            /**
+             * @return a read-only Set view of this SessionPartition's DayOfWeekPartitions.
+             */
+            public Collection<MeetingDayPartition> meetingDayPartitions1(){return Collections.unmodifiableCollection(cMeetingDayPartitions.values());}
+            /**
+             * @param pDayOfWeek The DayOfWeek of the MeetingDayPartition to retrieve. Not Null.
+             * @return the MeetingDayPartition with the specified DayOfWeek or null if no such MeetingDayPartition exists.
+             */
+            public MeetingDayPartition getMeetingDayPartition(DayOfWeek pDayOfWeek){
+                if (pDayOfWeek == null)
+                    throw new IllegalArgumentException("Null pDayOfWeek argument.");  
+                return cMeetingDayPartitions.get(pDayOfWeek);
+            }
+            //************************************************************************************************
+            //***************************************Inner Class*********************************************
+            //************************************************************************************************ 
+            
+            public class MeetingDayPartition{
+                private final DayOfWeek cDayOfWeek;
+                /**
+                 * Consists of all MeetingTimes of each Section in the SessionPartition for which mt.days().contains(cDayOfWeek) == true.
+                 */
+                private final TreeSet<MeetingTime> cMeetingTimes;
+                private int cNumCampusSwitches;
+                private int cNumCampusSwitches1HrOrLess;
+                        
+                /**
+                 * A Comparator of type MeetingTime that compares two MeetingTime objects based on the MeetingTime's startTime(), 
+                 * which will be unique so long as, for each MeetingTime mt in the set:
+                 * 1) mt.days().contains(cDayOfWeek) == true.
+                 * 2) All MeetingTimes are associated with Sections that are all part of the same valid schedule 
+                 * 3) All MeetingTimes are associated with Sections belonging to the same <code>Session Partition</code>. 
+                 * This will allow order in the set by start times for the given DayOfWeek
+                 */
+                private final Comparator<MeetingTime> START_TIME_ASC = new Comparator<MeetingTime>() {
+                    @Override
+                    public int compare(MeetingTime mt1, MeetingTime mt2) {
+                        return mt2.startTime().minutesTo(mt1.startTime());
+                    }
+                };  
+                private MeetingDayPartition(DayOfWeek pDayOfWeek, MeetingTime pMeetingTime){
+                    cDayOfWeek = pDayOfWeek;
+                    cMeetingTimes = new TreeSet<>(START_TIME_ASC);
+                    cMeetingTimes.add(pMeetingTime);
+                }
+                /**
+                 * Adds a MeetingTime pMeetingTime to this MeetingDayPartition. It must be true that:
+                 * 1) pMeetingTime.days().contains(cDayOfWeek) == true.
+                 * 2) All MeetingTimes in cMeetingTimes are associated with Sections that are all part of the same valid (non-overlapping) schedule 
+                 * 3) All MeetingTimes are associated with Sections belonging to the same <code>Session Partition</code>. 
+                 * @param pMeetingTime the MeetingTime to add to cMeetingTimes. No checks are made on validity.
+                 */
+                private void addMeetingTime(MeetingTime pMeetingTime){
+                    cMeetingTimes.add(pMeetingTime);
+                    cNumCampusSwitches = 0;
+                    cNumCampusSwitches1HrOrLess = 0;
+                    
+                    MeetingTime prevFoundMeetingTimeWithCampus = null;
+                    for (MeetingTime mt : cMeetingTimes){     
+                        if(mt.section().campus() != null){
+                            if (prevFoundMeetingTimeWithCampus != null  && !prevFoundMeetingTimeWithCampus.section().campus().equals(mt.section().campus())){
+                                cNumCampusSwitches++;
+                                if(prevFoundMeetingTimeWithCampus.endTime().minutesTo(mt.startTime()) >59)
+                                    cNumCampusSwitches1HrOrLess++;
+                            }
+                            prevFoundMeetingTimeWithCampus = mt; 
+                        }
+                    }
+                }
+                //************************************************************************************************
+                //***************************************Querying*********************************************
+                //************************************************************************************************ 
+                public int numCampusSwitches1HrOrLess() {return cNumCampusSwitches1HrOrLess;}
+                public int numCampusSwitches() {return cNumCampusSwitches;}
+                
+                /**
+                 * @return the SessionPartition to which this MeetingDayPartition belongs.
+                 */
+                public SessionPartition sessionPartition() {return SessionPartition.this;}
+                /**
+                 * @return the DayOfWeek of this MeetingDayPartition.
+                 */
+                public DayOfWeek dayOfWeek(){return cDayOfWeek;}
+                /**
+                 * Returns the first {@link uscheduler.internaldata.Sections.Section.MeetingTime#startTime()   startTime} in this MeetingDayPartition.
+                 * @return the first startTime in this MeetingDayPartition.
+                 */
+                public UTime minStart(){return cMeetingTimes.first().startTime();}
+                /**
+                 * @return the last {@link uscheduler.internaldata.Sections.Section.MeetingTime#endTime()  endTime} in this MeetingDayPartition.
+                 */
+                public UTime maxEnd(){return cMeetingTimes.last().endTime();}
+                /**
+                 * @return the minutes between minStart() and maxEnd().
+                 */
+                public int minutesAtSchool(){return minStart().minutesTo(maxEnd());}
+                /**
+                 * @return a read-only {@link java.util.Set Set} view of this MeetingDayPartition's meeting times
+                 */
+                public Set<MeetingTime> meetingTimes1(){return Collections.unmodifiableSet(cMeetingTimes);}
+                                
+                @Override
+                public String toString(){
+                    return "[dayOfWeek=" + cDayOfWeek + ", meetingTimes=" + cMeetingTimes + "]";
+                }
+                
+            }
+        }
     }
     
 }

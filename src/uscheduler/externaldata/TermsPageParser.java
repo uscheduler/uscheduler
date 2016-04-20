@@ -87,7 +87,7 @@ public final class TermsPageParser {
             selectOption = selectOptionsIterator.next();
             htmlTerm = new TermsPageParser.HTMLTerm();
             htmlTerm.cTermNum = Integer.parseInt(selectOption.attr("VALUE"));
-            htmlTerm.cTermName = selectOption.ownText();
+            htmlTerm.cTermName = selectOption.ownText().replaceAll(" [(]View only[)]", "");
             termsLL.add(htmlTerm);
         }
         

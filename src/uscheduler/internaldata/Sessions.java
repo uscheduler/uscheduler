@@ -5,6 +5,7 @@
  */
 package uscheduler.internaldata;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import uscheduler.internaldata.Terms.Term;
@@ -21,7 +22,7 @@ public final class Sessions implements Table{
     /**
      * The HashMap to store Session objects using the session's pkey() as the key into the map. s.
      */
-    private static final HashMap<String, Session> cSessions = new HashMap();   
+    private static final HashMap<String, Session> cSessions = new HashMap<>();   
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
      */
@@ -42,7 +43,8 @@ public final class Sessions implements Table{
      * @param pSessionName the name of the session
      * @param pStartDate the start date of the session
      * @param pEndDate the end date of the session
-     * @throws IllegalArgumentException if pTerm, pSessionName, pStartDate, or pEndDate is null.
+     * @throws IllegalArgumentException if pTerm, pSessionName, pStartDate, or pEndDate is null or if pSessionName doesn't contain at least one non-white-space character.
+     * @throws IllegalArgumentException if pStartDate is not less than pEndDate.
      * @return the newly added Session if no such Session already existed, otherwise returns the already existing Session.
      */
     public static Session add(Term pTerm, String pSessionName, UDate pStartDate, UDate pEndDate){
@@ -74,6 +76,15 @@ public final class Sessions implements Table{
      */
     public static Session get(Term pTerm, String pSessionName){
         return cSessions.get(pTerm.pkey() + "~" + pSessionName);
+    }    
+    /**
+     * Returns from the Sessions table all Sessions, in no particular order.
+     * This method is used for testing and debugging and does not have a use in the final app.
+     * 
+     * @return ArrayList of all Sessions in the Sessions table. 
+     */
+    public static ArrayList<Session> getAll(){
+        return new ArrayList<>(cSessions.values());
     }
     //************************************************************************************************
     //***************************************Comparators*********************************************
@@ -137,8 +148,16 @@ public final class Sessions implements Table{
                 throw new IllegalArgumentException("A session's start date cannot be null.");
             if (pEndDate == null)
                 throw new IllegalArgumentException("A session's end date cannot be null.");
+            
+            String trimmedSessionName = pSessionName.trim();
+            if (trimmedSessionName.isEmpty())
+                throw new IllegalArgumentException("A session's name  must contain at least one non-white-space character.");            
+            
+            if(!pStartDate.lessThan(pEndDate))
+                throw new IllegalArgumentException("A session's start date must be less than its end date.");  
+            
             cTerm = pTerm;
-            cSessionName = pSessionName;
+            cSessionName = trimmedSessionName;
             cStartDate = pStartDate; //Udate guarantees objects are immutable, thus, no need to worry about setting cStartDate to a reference of unknown origin and control.
             cEndDate = pEndDate;
             
@@ -162,14 +181,12 @@ public final class Sessions implements Table{
         /**
          * Returns true if this session overlaps with the session specified by other.
          * Two sessions S1 and S1 overlap if S1.startDate &lt; S2.endDate AND S1.endDate &gt; S2.startDate
-     * <br>
-     * <b>!!!NOT YET IMPLEMENTED!!!</b>
-     * <br>
-         * @param other the Session object to which to compare this one for overlap
+         * 
+         * @param other the Session object to which to compare this one for overlap. Not null.
          * @return true if this session overlaps with the session specified by other.
          */
         public boolean overlaps(Session other){
-            throw new UnsupportedOperationException("Not supported yet.");
+            return (this.cStartDate.lessThan(other.cEndDate) && this.cEndDate.greaterThan(other.cStartDate));
         }        
         
         /**
@@ -177,7 +194,7 @@ public final class Sessions implements Table{
          */
         @Override
         public String toString(){
-            return "Session[term=" + cTerm + ", sessionName=" + cSessionName + ", startDate=" + cStartDate + ", endDate=" + cEndDate + "]";
+            return "[term=" + cTerm + ", sessionName=" + cSessionName + ", startDate=" + cStartDate + ", endDate=" + cEndDate + "]";
         }
         /**
          * @return the session's primary key value, which is term().pkey() + "~" + sessionName()

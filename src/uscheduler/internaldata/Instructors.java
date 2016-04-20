@@ -16,23 +16,11 @@ import java.util.HashMap;
  * @author Matt Bush
  */
 public final class Instructors implements Table{
-    //************************************************************************************************
-    //***************************************Data Modification*****************************************
-    //************************************************************************************************
-    //************************************************************************************************
-    //***************************************Querying*************************************************
-    //************************************************************************************************
-    //************************************************************************************************
-    //***************************************Comparators*********************************************
-    //************************************************************************************************  
-    //************************************************************************************************
-    //***************************************Record Class*********************************************
-    //************************************************************************************************   
     
     /**
      * The HashMap to store Instructor objects using the instructor's pkey() as the key into the map. 
      */
-    private static final HashMap<String, Instructor> cInstructors = new HashMap();
+    private static final HashMap<String, Instructor> cInstructors = new HashMap<>();
     
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
@@ -52,7 +40,7 @@ public final class Instructors implements Table{
      * <br><br>
      * 
      * @param pInstructorName the name of the Instructor to add.
-     * @throws IllegalArgumentException if pInstructorName is null.
+     * @throws IllegalArgumentException if pInstructorName is null or doesn't contain at least one non-white-space character.
      * @return the newly added Instructor if no such Instructor already existed, otherwise returns the already existing Instructor.
      */
     public static Instructor add(String pInstructorName){
@@ -121,7 +109,10 @@ public final class Instructors implements Table{
         private Instructor (String pInstructorName) {
             if (pInstructorName == null)
                 throw new IllegalArgumentException("An instructor's name cannot be null.");
-            cInstructorName = pInstructorName;
+            String trimmedInstructorName = pInstructorName.trim();
+            if (trimmedInstructorName.isEmpty())
+                throw new IllegalArgumentException("An instructor's name  must contain at least one non-white-space character.");            
+            cInstructorName = trimmedInstructorName;
         }
         /**
          * @return the Instructor's Name
@@ -132,7 +123,7 @@ public final class Instructors implements Table{
          */
         @Override
         public String toString(){
-            return "Instructor[instructorName=" + cInstructorName + "]";
+            return "[instructorName=" + cInstructorName + "]";
         }
         /**
          * @return the instructor's primary key value, which is instructorName()

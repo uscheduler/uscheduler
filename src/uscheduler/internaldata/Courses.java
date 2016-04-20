@@ -5,8 +5,13 @@
  */
 package uscheduler.internaldata;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import uscheduler.internaldata.Subjects.Subject;
 
 
@@ -21,7 +26,16 @@ public final class Courses implements Table {
      /**
      * The HashMap to store Course objects using the course's pkey() as the key into the map. 
      */
-    private static final HashMap<String, Course> cCourses = new HashMap();
+    private static final HashMap<String, Course> cCourses = new HashMap<>();
+    
+    /**
+     * The HashMap to store the "courses by subject" index, in which the key of the index is a subject.
+     * The key maps to an TreeSet, which stores all courses for the given subject. 
+     * The TreeSet uses the Course.PK_ASC comparator, which is unique.
+     * This HashMap is used to provide quick access to all courses of a given subject.
+     */
+    private static final HashMap<Subject, TreeSet<Course>> cSubjectIndex = new HashMap<>();
+    
     /**
      * Private constructor to prevent instantiation and implement as a singleton class
      */
@@ -39,17 +53,29 @@ public final class Courses implements Table {
      * 
      * @param pSubj the Subject of the Course to add.
      * @param pCourseNum the course number of the Course to add.
-     * @throws IllegalArgumentException if pSubject or pCourseNum is null.
+     * @throws IllegalArgumentException if pSubject or pCourseNum is null or doesn't contain at least one non-white-space character.
      * @return the newly added Course if no such Course already existed, otherwise returns the already existing Course.
      */
     public static Course add(Subject pSubj, String pCourseNum){
         Course temp = new Course(pSubj, pCourseNum);
         Course found = cCourses.get(temp.pkey());
-        if (found == null){
-            cCourses.put(temp.pkey(), temp);
-            return temp;
+        
+        if(found != null)
+            return found;
+        
+        cCourses.put(temp.pkey(), temp);
+        
+        //Add the new course to the subjects index
+        TreeSet<Course> courseSet = cSubjectIndex.get(pSubj);
+        if (courseSet == null){
+            courseSet = new TreeSet<>(Courses.PK_ASC);
+            courseSet.add(temp);
+            cSubjectIndex.put(pSubj, courseSet); 
+        } else {
+            courseSet.add(temp);
         }
-        return found;
+        
+        return temp;
         
     }
     //************************************************************************************************
@@ -72,6 +98,30 @@ public final class Courses implements Table {
      */
     public static Course get(Subject pSubj, String pCourseNum){
         return cCourses.get(pSubj.pkey() + "~" + pCourseNum);
+    }
+    /**
+     * Returns from the Courses table, a read-only set of all Courses from the specified Subject. The set will be ordered by PK_ASC.
+     * <br>
+     * @param pSubject the Subject of the Courses to return. 
+     * @return a read-only set of all Courses whose Subject is pSubject ordered by PK_ASC.
+     */
+    public static Set<Course> getBySubject1(Subject pSubject){
+        
+        Set<Course> courseSet = cSubjectIndex.get(pSubject);
+        if (courseSet == null){
+            return Collections.unmodifiableSet(new TreeSet<Course>(Courses.PK_ASC));
+        } else {
+            return Collections.unmodifiableSet(courseSet);
+        } 
+    }  
+    /**
+     * Returns from the Courses table all Courses, in no particular order.
+     * This method is used for testing and debugging and does not have a use in the final app.
+     * 
+     * @return ArrayList of all Courses in the Courses table. 
+     */
+    public static ArrayList<Course> getAll(){
+        return new ArrayList<>(cCourses.values());
     }
     //************************************************************************************************
     //***************************************Comparators*********************************************
@@ -111,8 +161,11 @@ public final class Courses implements Table {
                 throw new IllegalArgumentException("A course's Subject cannot be null.");
             if (pCourseNum == null)
                 throw new IllegalArgumentException("A course's course number cannot be null.");
+            String trimmedCourseNum = pCourseNum.trim();
+            if (trimmedCourseNum.isEmpty())
+                throw new IllegalArgumentException("A course's course number must contain at least one non-white-space character.");
             cSubject = pSubject;
-            cCourseNum = pCourseNum;
+            cCourseNum = trimmedCourseNum;
         }
         /**
          * @return the Course's Subject
@@ -127,7 +180,7 @@ public final class Courses implements Table {
          */
         @Override
         public String toString(){
-            return "Course[subject=" + cSubject + ", courseNum=" + cCourseNum + "]";
+            return "[subject=" + cSubject + ", courseNum=" + cCourseNum + "]";
         }
         /**
          * @return the course's primary key value, which is subject().pkey() + "~" + courseNum()

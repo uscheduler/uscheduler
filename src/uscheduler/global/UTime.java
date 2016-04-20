@@ -14,7 +14,7 @@ import java.util.GregorianCalendar;
  * A simple class to model a time of day without modeling second precision, time zones, or a date.
  * Internal, this class stores a time with hour and minute precision.
  * 
- * <p>This class is designed to aid the implementation of a {@link uscheduler.internaldata.Sections.MeetingTime MeetingTime}'s start time and end time.
+ * <p>This class is designed to aid the implementation of a {@link uscheduler.internaldata.Sections.Section.MeetingTime MeetingTime}'s start time and end time.
  * To simplify the implementation of data constraints and ensuring data integrity associated with a MeetingTime's start time and end time, 
  * this class is designed so that objects of this type are immutable. Thus, this class ensures that a UTime object's value can not change after construction.
  * 
@@ -45,7 +45,7 @@ public class UTime implements Comparable<UTime>{
      * <p><b>Midnight and Noon: </b> "12:00 am" is parsed as midnight and is considered the earliest time of the day. "12:00 pm" is parsed as noon. 
      * Thus, 12:00 am (midnight) &lt; 12:01 am, and 12:00 pm (noon) &lt;  11:59 pm (last minute of day)
      * @param pTime the string representation of the time from which to construct the UTime.
-     * @throws ParseException 
+     * @throws ParseException  if the specified time string cannot be parsed.
      */
     public UTime(String pTime) throws ParseException{
         Calendar cal = new GregorianCalendar();
@@ -54,6 +54,20 @@ public class UTime implements Comparable<UTime>{
         cMinute = cal.get(Calendar.MINUTE); 
         cStringRep = pTime;
     }
+    /**
+     * Constructs a new UTime from a the specified hour and minute
+     * @param pHour The hour of day (0-23)
+     * @param pMinute The minute of day (0-59)
+     */
+    public UTime(int pHour, int pMinute){
+        Calendar cal = new GregorianCalendar();
+        cal.set(0, 0, 0, pHour, pMinute);
+        SimpleDateFormat sdfDate = new SimpleDateFormat("h:mm a");
+        cHour = cal.get(Calendar.HOUR_OF_DAY);
+        cMinute = cal.get(Calendar.MINUTE); 
+        cStringRep = sdfDate.format(cal.getTime());
+    }
+    
     /**
      * Returns a new UTime that is a copy of this UTime.
      * @return a new UTime that is a copy of this UTime
@@ -65,23 +79,35 @@ public class UTime implements Comparable<UTime>{
     /**
      * Returns the distance, in terms of minutes, from this UTime to some other UTime.
      * The distance is positive if this UTime is less than the other UTime, 0 if this UTime equals the other UTime, negative otherwise.
-     * @param pOther the other UTime in which to calculate the distance to
+     * @param pOther the other UTime in which to calculate the distance to. Not null.
      * @return the distance, in terms of minutes, from this UTime to pOther
      */  
     public int minutesTo(UTime pOther){
-        return (this.cHour * 24 + this.cHour) - (pOther.cHour * 24 + pOther.cHour);
+        return  (pOther.cHour * 60 + pOther.cMinute) - (this.cHour * 60 + this.cMinute);
     }
 
     /**
      * Returns true if this UTime is less than some other UTime. 
      * "12:00 am" (midnight) is the earliest minute of the day while "12:59 pm" is the last minute of the day.
-     * @param pOther the other Time in which to test if this UTime is less than
+     * @param pOther the other Time in which to test if this UTime is less than. Not null.
      * @return true if this UTime is less than pOther
      */  
     public boolean lessThan(UTime pOther){
         if (this.cHour != pOther.cHour)
             return this.cHour < pOther.cHour;
         return this.cMinute < pOther.cMinute;
+    }  
+
+    /**
+     * Returns true if this UTime is greater than some other UTime. 
+     * "12:00 am" (midnight) is the earliest minute of the day while "12:59 pm" is the last minute of the day.
+     * @param pOther the other Time in which to test if this UTime is greater than. Not null.
+     * @return true if this UTime is greater than pOther
+     */  
+    public boolean greaterThan(UTime pOther){
+        if (this.cHour != pOther.cHour)
+            return this.cHour > pOther.cHour;
+        return this.cMinute > pOther.cMinute;
     }  
     
     /**
@@ -103,7 +129,7 @@ public class UTime implements Comparable<UTime>{
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof UTime)){
             return false;
         }
         final UTime other = (UTime) obj;

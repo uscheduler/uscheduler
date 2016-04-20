@@ -49,14 +49,26 @@ public final class DocumentRequester {
 
     /**
      * Makes a HTTP connection to the Sections Page (KSU Class Schedule Listing) for the specified term, subject, and course and returns the read response as a Jsoup.Document object.
+     * <p><b>NOTE:</b>For much of the design of this project, it was assumed that the course argument provide to KSU's web server
+     * was treated as "... where courseNum="argument"". 
+     * <br>However, it has been discovered late in the project that KSU treats the course argument as "... where courseNum like("argument*")".
+     * <br>Additionally, It was also assumed that any provided courseNum argument provided that did not correspond to a real course
+     * would result in KSU returning the sections found page, but with no sections. The parser would encounter this and throw a NoDataFoundException. 
+     * This assumption turned out to be wrong. KSU will only return an empty sections page if the courseNum argument is less than 6 character and is alpha-numeric. 
+     * <p>
      * @param pTermNum the term number for which the get Sections
      * @param pSubjAbbr the subject abbreviation for which the get Sections
-     * @param pCourseNum the course number for which the get Sections
+     * @param pCourseNum the course number for which the get Sections. Not null. Must be 4 or 5 chars long and only contain alphanumeric characters.
      * @return Jsoup.Document object of the specified Sections Page
      * @throws IOException if timed out or failed to make a connection for any reason
      */
     public static Document getSectionsPage(int pTermNum, String pSubjAbbr, String pCourseNum) throws IOException {
 	//params.add(HttpConnection.KeyVal.create("p_calling_proc", "bwckschd.p_disp_dyn_sched"));
+        String cleanString = pCourseNum.replaceAll("[^a-zA-Z0-9]", "");
+        cleanString = cleanString.substring(0, Math.min(cleanString.length(), 5));
+        if (!cleanString.equals(pCourseNum) || !(cleanString.length() == 4 || cleanString.length() == 5))
+            throw new IllegalArgumentException("Invalid pCourseNum");
+        
         Connection con = Jsoup.connect(SECTIONS_PAGE_URL)
   		.data("term_in", Integer.toString(pTermNum))
 		.data("sel_subj", "dummy")

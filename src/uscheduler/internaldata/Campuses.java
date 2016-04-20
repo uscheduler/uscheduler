@@ -21,7 +21,7 @@ public final class Campuses implements Table {
     /**
      * The HashMap to store Campus objects using the campus's pkey() as the key into the map. 
      */
-    private static final HashMap<String, Campus> cCampuses = new HashMap();
+    private static final HashMap<String, Campus> cCampuses = new HashMap<>();
 
     
     /**
@@ -41,7 +41,7 @@ public final class Campuses implements Table {
      * <br><br>
      * 
      * @param pCampusName the name of the Campus to add.
-     * @throws IllegalArgumentException if pCampusName is null.
+     * @throws IllegalArgumentException if pCampusName is null or doesn't contain at least one non-white-space character.
      * @return the newly added Campus if no such Campus already existed, otherwise returns the already existing Campus.
      */
     public static Campus add(String pCampusName){
@@ -119,7 +119,10 @@ public final class Campuses implements Table {
         private Campus (String pCampusName) {
             if (pCampusName == null || pCampusName.isEmpty())
                 throw new IllegalArgumentException("A campus's name cannot be null.");
-            cCampusName = pCampusName;
+            String trimmedCampus = pCampusName.trim();
+            if (trimmedCampus.isEmpty())
+                throw new IllegalArgumentException("A campus's name must contain at least one non-white-space character.");
+            cCampusName = trimmedCampus;
         }
         /**
          * @return the Campus's Name
@@ -130,7 +133,7 @@ public final class Campuses implements Table {
          */
         @Override
         public String toString(){
-            return "Campus[campusName=" + cCampusName + "]";
+            return "[campusName=" + cCampusName + "]";
         }
         /**
          * @return the campus's primary key value, which is campusName()
